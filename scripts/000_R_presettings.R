@@ -20,7 +20,7 @@ comm <- "_all_" ## short descriptive comment to use e.g. for file naming
 parallelize <- T
 core_num <- 20
 
-daterange <- c("2019-03-01","2022-12-31")  #Stand 10.10.2021 granules für 2022 nur bis ca Juni. Außerdem teilweise .png files (was ist das?)
+daterange <- c("2019-03-01","2021-12-31")  #Stand 10.10.2021 granules für 2022 nur bis ca Juni. Außerdem teilweise .png files (was ist das?)
 
 ####################################################################
 ####################################################################

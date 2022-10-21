@@ -57,6 +57,16 @@ gedi_tbl <- do.call("rbind", gedi_parts_list)
 Sys.time()
 rm(gedi_parts_list)
 
+#######################################################################################
+## add some additional columns
+#######################################################################################
+### orbit number
+gedi_tbl$orbit_ID <- substr(gedi_tbl$shot_number, 1, 5)
+#time
+gedi_tbl$year <- format(as.POSIXct(gedi_tbl$time, format = "%Y-%m-%dT%H:%M:%S"), format = "%Y")
+gedi_tbl$month <- format(as.POSIXct(gedi_tbl$time, format = "%Y-%m-%dT%H:%M:%S"), format = "%m")
+
+
 Sys.time() ###3min
 # st_write(gedi_tbl, paste0(gee_path, "030_gedi_merged_raw", comm, ".gpkg"), delete_dsn = TRUE) # takes too much storage (allocate vector -error)
 saveRDS(gedi_tbl, file = paste0(gee_path, "030_gedi_merged_raw", comm, ".rds")) #>15min

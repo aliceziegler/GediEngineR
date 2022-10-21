@@ -1,0 +1,190 @@
+---
+title: "540_validation"
+author: "Alice Ziegler"
+date: '2022-09-30'
+output: html_document
+---
+
+## Setup
+```{r setup, include=FALSE, echo = F}
+rm(list=ls())
+#####
+### TO DO
+#####
+#? ich bin nicht sicher ob sd nach Monat so sinnvoll ist  - aber zum Vergleich der Monate untereinander evtl schon...
+
+
+#####
+### load packages & stuff
+#####
+library(CAST)
+library(caret)
+library(ranger)
+library(dplyr)
+library(ggplot2)
+library(data.table)
+source("000_presettings.R")
+#####
+### general settings
+#####
+out_end <- "_samples_150_no21"
+```
+
+## Preparation of data
+```{r}
+
+#####
+### read data
+#####
+model <- readRDS(file = paste0(gee_path, "test_model", out_end, ".rds"))
+train_data <- readRDS(file = paste0(gee_path, "data_train", out_end, ".rds"))
+test_data <- readRDS(file = paste0(gee_path, "data_test", out_end, ".rds")) # 2021
+test_data <- test_data[order(test_data$id_after_filter),] ##temporär (5.10.) ist eigentlich in 530 angepasst. sollte ab nächstem modelrun passen 
+
+
+# !!!delete efollowing with next run
+#####
+### create additional colums needed ###can be deleted, is newly implemented in 030
+#####
+test_data$year <- format(as.POSIXct(test_data$time, format = "%Y-%m-%dT%H:%M:%S"), format = "%Y")
+test_data$month <- format(as.POSIXct(test_data$time, format = "%Y-%m-%dT%H:%M:%S"), format = "%m")
+#corine als factor
+corine_factor <- as.factor(test_data$corine) ###can be deleted, is newly implemented in 040
+
+
+#####
+### create general lookups
+#####
+
+#unique vectors 
+corine_unique <- unique(test_data$corine)[order(unique(test_data$corine))]
+month_unique <- unique(test_data$month)[order(unique(test_data$month))]
+cor_mon_unique_rnd <- unique(test_data[c("corine", "month")])
+cor_mon_unique <- cor_mon_unique_rnd[with(cor_mon_unique_rnd, order(month, corine)),]
+
+# obs metrics grouped by corine (obs mean and sd)
+corine_aggregate_matrix <- aggregate(pai ~ corine, test_data, function(x) c(mean = mean(x), sd = sd(x)))
+corine_aggregate <- do.call("data.frame", corine_aggregate_matrix)
+colnames(corine_aggregate)[which(colnames(corine_aggregate) %in% c("pai.mean", "pai.sd"))] <- c("pai_obs_test_mean", "pai_obs_test_sd")
+
+# obs metrics grouped by month 
+#? ich bin nicht sicher ob sd nach Monat so sinnvoll ist  - aber zum Vergleich der Monate untereinander evtl schon...
+month_aggregate_matrix <- aggregate(pai ~ month, test_data, function(x) c(mean = mean(x), sd = sd(x)))
+month_aggregate <- do.call("data.frame", month_aggregate_matrix)
+colnames(month_aggregate)[which(colnames(month_aggregate) %in% c("pai.mean", "pai.sd"))] <- c("pai_obs_est_mean", "pai_obs_test_sd")
+
+# obs metrics grouped by month and corine
+cor_mon_aggregate_matrix <- aggregate(pai ~ month+corine, test_data, function(x) c(mean = mean(x), sd = sd(x)))
+cor_mon_aggregate <- do.call("data.frame", cor_mon_aggregate_matrix)
+colnames(cor_mon_aggregate)[which(colnames(cor_mon_aggregate) %in% c("pai.mean", "pai.sd"))] <- c("pai_obs_est_mean", "pai_obs_test_sd")
+```
+
+## validation
+
+# predict points of 2021
+```{r}
+test_data <- data.frame(test_data, pred = predict(model, st_drop_geometry(test_data)))
+```
+
+## calculate errors for all and subgroups and prepare data fro plotting
+```{r}
+# errors total model
+errors <- defaultSummary(data.frame(obs = test_data$pai, pred = test_data$pred))
+
+# errors by corine group
+errors_corine_lst <- lapply(corine_unique, function(i){
+  err <- defaultSummary(data.frame(obs = test_data$pai[test_data$corine == i], 
+                                   pred = test_data$pred[test_data$corine == i]))
+})
+errors_corine <- merge(corine_aggregate, data.frame(corine = corine_unique, as.data.frame(do.call("rbind", errors_corine_lst))), by = "corine")
+errors_corine$RMSE_sd <- errors_corine$RMSE/errors_corine$pai_obs_test_sd
+#create long table for plot
+errors_corine_long <- melt(setDT(errors_corine), id.vars = c("corine"), 
+                          variable.name = "error_metric")
+
+# errors by month
+errors_month_lst <- lapply(month_unique, function(i){
+  err <- defaultSummary(data.frame(obs = test_data$pai[test_data$month == i], 
+                                   pred = test_data$pred[test_data$month == i]))
+})
+errors_month <- merge(month_aggregate, data.frame(month = month_unique, as.data.frame(do.call("rbind", errors_month_lst))), by = "month")
+errors_month$RMSE_sd <- errors_month$RMSE/errors_month$pai_obs_test_sd
+#create long table for plot
+errors_month_long <- melt(setDT(errors_month), id.vars = c("month"), 
+                          variable.name = "error_metric")
+
+#errors by corine and month
+errors_cor_mon_lst <- lapply(seq(nrow(cor_mon_unique)), function(i){
+  mon <- cor_mon_unique$month[i]
+  cor <- cor_mon_unique$corine[i]
+  err <- defaultSummary(data.frame(obs = test_data$pai[test_data$month == mon & test_data$corine == cor], 
+                                   pred = test_data$pred[test_data$month == mon & test_data$corine == cor]))
+})
+errors_cor_mon <- merge(cor_mon_aggregate, data.frame(cor_mon_unique, as.data.frame(do.call("rbind", errors_cor_mon_lst))), by = c("month", "corine"))
+errors_cor_mon$RMSE_sd <- errors_cor_mon$RMSE/errors_cor_mon$pai_obs_test_sd
+
+###create table for heatmap
+#wide table
+heat_r2 <- errors_cor_mon[,c("month", "corine", "Rsquared")]
+heat_r2 <- heat_r2[!duplicated(heat_r2),]
+# change corine to factors so there are no gaps for missing clases
+heat_r2$corine <- as.factor(heat_r2$corine)
+
+```
+
+#actual plotting
+
+```{r}
+#####
+### heatmap performance
+##### 
+heaty <- 
+  ggplot(data = heat_r2, mapping = aes(x = month, y = corine, fill = Rsquared)) + 
+  geom_tile() + 
+  xlab(label= "month")
+print(heaty)
+
+#####
+### Performance across corine
+#####
+points_corine <- ggplot(errors_corine_long, aes(corine, value))+
+  geom_point(aes(colour = factor(error_metric)), size = 5)
+print(points_corine)
+
+#####
+### Performance over time
+#####
+points_month <- ggplot(errors_month_long, aes(month, value))+
+  geom_point(aes(colour = factor(error_metric)), size = 5)
+print(points_month)
+
+#####
+### NDVI and PAI over time #take final aestetics from 116 plotting
+#####
+box_pai <- ggplot(test_data, aes(x=as.character(month), y=pai, fill = as.character(corine))) +
+  geom_boxplot()+
+theme_bw()+
+  xlab("Date")+
+  ylab("PAI")
+
+box_ndvi <- ggplot(test_data, aes(x=as.character(month), y=NDVI, fill = as.character(corine))) +
+  geom_boxplot()+
+theme_bw()+
+  xlab("Date")+
+  ylab("NDVI")
+
+#####
+### variable importance
+#####
+plot_varImp <- plot(varImp(model))
+
+```
+
+## Plots
+
+
+```{r pressure, echo=FALSE}
+
+plot(test_data$pai, test_data$predicted)
+```
+
