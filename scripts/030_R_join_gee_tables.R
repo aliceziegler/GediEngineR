@@ -35,8 +35,8 @@ if (merge_tables == T) {
   gedi_files <- paste0(gee_path, "gedi_granule_samples_150.csv")
 }
 
-###all files: R-studio-Server ## ~ 10 min
-Sys.time()
+###all files: R-studio-Server
+Sys.time()## ~ 10 min
 gedi_parts_list <- lapply(gedi_files, function(i){
   gee_tbl <- read.csv(file = i) #runtime test: if only one file exists, not slower than opening it directly. check
 })

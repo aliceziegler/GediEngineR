@@ -11,14 +11,14 @@ rm(list=ls())
 ### stuff to play with
 ####################################################################
 ####################################################################
-machine <- "local"
+# machine <- "local"
 # machine <- "cluster" # MaRC3
-# machine <- "rstudioserver" # hosted on MaRC3
+machine <- "rstudioserver" # hosted on MaRC3
 
 comm <- "_all_" ## short descriptive comment to use e.g. for file naming
 
-parallelize <- F
-core_num <- 4
+parallelize <- T
+core_num <- 20
 
 daterange <- c("2019-03-01","2022-12-31")  #Stand 10.10.2021 granules für 2022 nur bis ca Juni. Außerdem teilweise .png files (was ist das?)
 
@@ -38,13 +38,13 @@ if (machine == "local"){
 }else if (machine == "cluster"){
   proj_path <- "/mnt/masc_home/ziegler5/GEDI/"
 }else if (machine == "rstudioserver"){
-  proj_path <- "~/GEDI/GEDItools/"
+  proj_path <- "~/GEDI/"
 }
 
-if(parallelize == T){
-cl <- makeCluster(core_num, type = "FORK", outfile = paste0(proj_path, "out.txt"))
-registerDoParallel(cl)
-}
+# if(parallelize == T){
+# cl <- makeCluster(core_num, type = "FORK", outfile = paste0(proj_path, "out.txt"))
+# registerDoParallel(cl)
+# }
 
 
 ####################################################################
@@ -58,7 +58,14 @@ data_path <- paste0(proj_path, "data/")
 if(!dir.exists(paste0(data_path, "GEE/"))){
   dir.create(paste0(data_path, "GEE/"))}
 gee_path <- paste0(data_path, "GEE/")
-
+#corine_path
+if(!dir.exists(paste0(data_path, "CORINE/"))){
+  dir.create(paste0(data_path, "CORINE/"))}
+corine_path <- paste0(data_path, "CORINE/")
+#out_path
+if(!dir.exists(paste0(proj_path, "out/"))){
+  dir.create(paste0(proj_path, "out/"))}
+out_path <- paste0(proj_path, "out/")
 #####
 ### study area
 #####
