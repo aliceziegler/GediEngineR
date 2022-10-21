@@ -30,7 +30,7 @@ merge_tables <- T # are there several GEE outputs that need to be merged
 ### read data
 #####
 if (merge_tables == T) {
-  gedi_files <- list.files(path = paste0(gee_path, "gedi_parts/"), full.names = T)
+  gedi_files <- list.files(path = paste0(gee_path, "gedi_parts/"), pattern = ".csv", full.names = T, recursive = F)
 }else{
   gedi_files <- paste0(gee_path, "gedi_granule_samples_150.csv")
 }
@@ -45,14 +45,14 @@ Sys.time()
 #######################################################################################
 ## Do stuff
 #######################################################################################
-###get rid of lists without sen2 columns and of columns "shot_number_within_beam"and "orbit_number" because they do not appear in all 2019-2020
-Sys.time() ## 1min
-gedi_parts_list <- Filter(function(i) ncol(i) != 18, gedi_parts_list)
-# get rid of columns "shot_number_within_beam", "orbit_number" because they are missing in some files (why!?)
-gedi_parts_list <- lapply(gedi_parts_list, function(i){
-  reduced_cols <- i[,!colnames(i) %in% c("shot_number_within_beam", "orbit_number")]
-  return(reduced_cols)
-})
+# ###get rid of lists without sen2 columns and of columns "shot_number_within_beam"and "orbit_number" because they do not appear in all 2019-2020
+# Sys.time() ## 1min
+# gedi_parts_list <- Filter(function(i) ncol(i) != 18, gedi_parts_list)
+# # get rid of columns "shot_number_within_beam", "orbit_number" because they are missing in some files (why!?)
+# gedi_parts_list <- lapply(gedi_parts_list, function(i){
+#   reduced_cols <- i[,!colnames(i) %in% c("shot_number_within_beam", "orbit_number")]
+#   return(reduced_cols)
+# })
 gedi_tbl <- do.call("rbind", gedi_parts_list)
 Sys.time()
 rm(gedi_parts_list)
@@ -61,7 +61,7 @@ rm(gedi_parts_list)
 ## add some additional columns
 #######################################################################################
 ### orbit number
-gedi_tbl$orbit_ID <- substr(gedi_tbl$shot_number, 1, 5)
+gedi_tbl$orbit_ID <- substr(gedi_tbl$shot_number, 1, 5) #see: https://lpdaac.usgs.gov/documents/986/GEDI02_UserGuide_V2.pdf
 #time
 gedi_tbl$year <- format(as.POSIXct(gedi_tbl$time, format = "%Y-%m-%dT%H:%M:%S"), format = "%Y")
 gedi_tbl$month <- format(as.POSIXct(gedi_tbl$time, format = "%Y-%m-%dT%H:%M:%S"), format = "%m")

@@ -36,7 +36,7 @@ if (machine == "cluster"){
 }
 
 comm_filt <- paste0(comm, "no2022_")
-comm_mod <- paste0(comm_filt, "val_21_smpl_150000")
+comm_mod <- paste0(comm_filt, "val_21_smpl_")
 #####
 ### read data
 #####
@@ -73,4 +73,4 @@ spatial_model <- ffs(preds, resp,
                      trControl= trainControl(method = "cv", index = folds$index,
                                              indexOut = folds$indexOut, savePredictions = T))
 Sys.time()
-saveRDS(spatial_model, file = paste0(out_path, "060_test_model", comm_mod, ".rds"))
+saveRDS(spatial_model, file = paste0(out_path, "061_test_model", comm_mod, ".rds"))

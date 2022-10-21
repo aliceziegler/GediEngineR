@@ -15,7 +15,7 @@ rm(list=ls())
 # machine <- "cluster" # MaRC3
 machine <- "rstudioserver" # hosted on MaRC3
 
-comm <- "_all_" ## short descriptive comment to use e.g. for file naming
+comm <- "_all_1col_" ## short descriptive comment to use e.g. for file naming
 
 parallelize <- T
 core_num <- 20
