@@ -35,7 +35,7 @@ if (machine == "cluster"){
   source("scripts/000_R_presettings.R")
 }
 
-comm_filt <- paste0(comm, "no2022_inclMix_")
+comm_filt <- paste0(comm, "no2022_onlynight")
 comm_mod <- paste0(comm_filt, "val_21_total")
 #####
 ### read data

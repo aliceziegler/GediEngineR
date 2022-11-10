@@ -23,11 +23,15 @@ library(ranger)
 library(dplyr)
 library(ggplot2)
 library(data.table)
-source("000_presettings.R")
+library(sf)
+library(scales)
+
+source("000_R_presettings.R")#different path, due to .Rmd
 #####
 ### general settings
 #####
-out_end <- "_samples_150_no21"
+comm_filt <- paste0(comm, "no2022_")
+comm_mod <- paste0(comm_filt, "val_21_total")
 ```
 
 ## Preparation of data
@@ -36,21 +40,20 @@ out_end <- "_samples_150_no21"
 #####
 ### read data
 #####
-model <- readRDS(file = paste0(gee_path, "test_model", out_end, ".rds"))
-train_data <- readRDS(file = paste0(gee_path, "data_train", out_end, ".rds"))
-test_data <- readRDS(file = paste0(gee_path, "data_test", out_end, ".rds")) # 2021
-test_data <- test_data[order(test_data$id_after_filter),] ##temporär (5.10.) ist eigentlich in 530 angepasst. sollte ab nächstem modelrun passen 
+model <- readRDS(file = paste0(out_path, "060_test_model", comm_mod, ".rds"))
+train_data <- readRDS(file = paste0(gee_path, "050_data_train", comm_mod, ".rds"))
+test_data <- readRDS(file = paste0(gee_path, "050_data_test", comm_mod, ".rds")) # 2021
 
 
-# !!!delete efollowing with next run
+# !!!delete following with next run
 #####
 ### create additional colums needed ###can be deleted, is newly implemented in 030
 #####
-test_data$year <- format(as.POSIXct(test_data$time, format = "%Y-%m-%dT%H:%M:%S"), format = "%Y")
-test_data$month <- format(as.POSIXct(test_data$time, format = "%Y-%m-%dT%H:%M:%S"), format = "%m")
 #corine als factor
-corine_factor <- as.factor(test_data$corine) ###can be deleted, is newly implemented in 040
-
+test_data$corine_factor <- as.factor(test_data$corine) ###can be deleted, is newly implemented in 040
+train_data$corine_factor <- as.factor(train_data$corine) ###can be deleted, is newly implemented in 040
+test_data$NDVI <- test_data$NDVI/10000
+train_data$NDVI <- train_data$NDVI/10000
 
 #####
 ### create general lookups
@@ -59,7 +62,7 @@ corine_factor <- as.factor(test_data$corine) ###can be deleted, is newly impleme
 #unique vectors 
 corine_unique <- unique(test_data$corine)[order(unique(test_data$corine))]
 month_unique <- unique(test_data$month)[order(unique(test_data$month))]
-cor_mon_unique_rnd <- unique(test_data[c("corine", "month")])
+cor_mon_unique_rnd <- unique(as.data.frame(test_data)[c("corine", "month")])
 cor_mon_unique <- cor_mon_unique_rnd[with(cor_mon_unique_rnd, order(month, corine)),]
 
 # obs metrics grouped by corine (obs mean and sd)
@@ -85,6 +88,15 @@ colnames(cor_mon_aggregate)[which(colnames(cor_mon_aggregate) %in% c("pai.mean",
 ```{r}
 test_data <- data.frame(test_data, pred = predict(model, st_drop_geometry(test_data)))
 ```
+
+## frequencies of points by month and corine class (train_data)
+```{r}
+tbl_cor <- table(as.data.frame(train_data)[,"corine"])
+tbl_mon <- table(as.data.frame(train_data)[,"month"])
+tbl_n_cor_mon <- table(as.data.frame(train_data)[,c("month", "corine")])
+
+```
+
 
 ## calculate errors for all and subgroups and prepare data fro plotting
 ```{r}
@@ -123,12 +135,18 @@ errors_cor_mon_lst <- lapply(seq(nrow(cor_mon_unique)), function(i){
 errors_cor_mon <- merge(cor_mon_aggregate, data.frame(cor_mon_unique, as.data.frame(do.call("rbind", errors_cor_mon_lst))), by = c("month", "corine"))
 errors_cor_mon$RMSE_sd <- errors_cor_mon$RMSE/errors_cor_mon$pai_obs_test_sd
 
-###create table for heatmap
+###create table< for heatmap
 #wide table
 heat_r2 <- errors_cor_mon[,c("month", "corine", "Rsquared")]
 heat_r2 <- heat_r2[!duplicated(heat_r2),]
-# change corine to factors so there are no gaps for missing clases
+# change corine to factors so there are no gaps for missing classes
 heat_r2$corine <- as.factor(heat_r2$corine)
+
+#wide table
+heat_rmsesd <- errors_cor_mon[,c("month", "corine", "RMSE_sd")]
+heat_rmsesd <- heat_rmsesd[!duplicated(heat_rmsesd),]
+# change corine to factors so there are no gaps for missing classes
+heat_rmsesd$corine <- as.factor(heat_rmsesd$corine)
 
 ```
 
@@ -138,11 +156,18 @@ heat_r2$corine <- as.factor(heat_r2$corine)
 #####
 ### heatmap performance
 ##### 
-heaty <- 
+heaty_r2 <- 
   ggplot(data = heat_r2, mapping = aes(x = month, y = corine, fill = Rsquared)) + 
   geom_tile() + 
   xlab(label= "month")
-print(heaty)
+print(heaty_r2)
+
+heaty_rmsesd <- 
+  ggplot(data = heat_rmsesd, mapping = aes(x = month, y = corine, fill = RMSE_sd)) + 
+  geom_tile() + 
+  xlab(label= "month")
+print(heaty_rmsesd)
+
 
 #####
 ### Performance across corine
@@ -187,4 +212,65 @@ plot_varImp <- plot(varImp(model))
 
 plot(test_data$pai, test_data$predicted)
 ```
+## seasonal development PAI and NDVI
+```{r pressure, echo=FALSE}
+# PAI_plot <-
+  ggplot(train_data, aes(x=as.character(month), y=pai, fill = corine_factor)) +
+  geom_boxplot()+
+  # scale_fill_manual(values = c("arableland" = "lightgoldenrod3","pastures" = "darkorange","broadleaved" = "darkolivegreen1",
+  #                              "coniferous" = "springgreen3","mixed" = "forestgreen"),
+  #                   labels = c("arable land", "pastures", "broad-leaved", "coniferous", "mixed forest"))+
+  # scale_x_discrete(labels=c("2019-04-22" = "April 22", "2019-05-16" = "May 16",
+  #                           "2019-06-25" = "June 25", "2019-06-28" = "June 28", "2019-07-23" = "July 23", "2019-08-22" = "August 22"))+
+  theme_bw()+
+  xlab("month")+
+  ylab("PAI")+
+  # scale_y_continuous(breaks = c(0,2,4,6), labels = c("0", "2", "4", "     6"))+
+  scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
+                labels = trans_format("log10", math_format(10^.x)))+
+  theme(legend.position = c(0.11, 0.8),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 12),
+        legend.background = element_rect(linetype = 1, size = 0.5, colour = 1),
+        # axis.text.x = element_text(colour = "black", size = 12),
+        # axis.title.x = element_text(size = 12),
+        axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.text.y = element_text(colour = "black", size = 12),
+        axis.title.y = element_text(size = 12))#, margin(0,0,0,0)))
 
+# NDVI_plot <-
+  ggplot(train_data, aes(x=as.character(month), y=NDVI, fill = corine_factor)) +
+  geom_boxplot()+
+  # scale_fill_manual(values = c("arableland" = "lightgoldenrod3","pastures" = "darkorange","broadleaved" = "darkolivegreen1",
+  #                              "coniferous" = "springgreen3","mixed" = "forestgreen"),
+  #                   labels = c("arable land", "pastures", "broad-leaved", "coniferous", "mixed forest"))+
+  # scale_x_discrete(labels=c("2019-04-22" = "April 22", "2019-05-16" = "May 16",
+  #                           "2019-06-25" = "June 25", "2019-06-28" = "June 28", "2019-07-23" = "July 23", "2019-08-22" = "August 22"))+
+  theme_bw()+
+  xlab("month")+
+  ylab("NDVI")+
+  theme(legend.position = c(0.11, 0.23),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 12),
+        legend.background = element_rect(linetype = 1, size = 0.5, colour = 1),
+        axis.text.x = element_text(colour = "black", size = 12),
+        axis.title.x = element_text(size = 12),
+        axis.text.y = element_text(colour = "black", size = 12),
+        axis.title.y = element_text(size = 12))
+
+# plot_list <- list(PAI_plot, NDVI_plot)
+# plot_grid <-
+#   ggpubr::ggarrange(plotlist = plot_list, ncol= 1, nrow = 2, heights = c(0.9, 1),
+#                     common.legend = T, legend = c("bottom", "left"),
+#                     font.label = list(size = 3))
+
+# ggsave(filename = paste0(fig_path, "116_temp_development_combi.png"),
+#        plot = plot_grid,
+#        width = 200, height = 150, units = "mm", dpi = 300)
+# 
+# ggsave(filename = paste0(fig_path, "116_temp_development_combi.pdf"),
+#        plot = plot_grid,
+#        width = 200, height = 150, units = "mm", dpi = 300)
+```

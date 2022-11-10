@@ -30,7 +30,7 @@ merge_tables <- T # are there several GEE outputs that need to be merged
 ### read data
 #####
 if (merge_tables == T) {
-  gedi_files <- list.files(path = paste0(gee_path, "gedi_parts/"), pattern = ".csv", full.names = T, recursive = F)
+  gedi_files <- list.files(path = paste0(gee_path, "gedi_parts"), pattern = ".csv", full.names = T, recursive = F)
 }else{
   gedi_files <- paste0(gee_path, "gedi_granule_samples_150.csv")
 }
@@ -53,6 +53,12 @@ Sys.time()
 #   reduced_cols <- i[,!colnames(i) %in% c("shot_number_within_beam", "orbit_number")]
 #   return(reduced_cols)
 # })
+
+###get rid of lists without sen2 columns due to cloud coverage
+# Sys.time() ## 1min
+# gedi_parts_list <- Filter(function(j) ("B3" %in% colnames(j)), gedi_parts_list)
+
+###bind lists together
 gedi_tbl <- do.call("rbind", gedi_parts_list)
 Sys.time()
 rm(gedi_parts_list)
@@ -60,7 +66,7 @@ rm(gedi_parts_list)
 #######################################################################################
 ## add some additional columns
 #######################################################################################
-### orbit number
+### orbit ID
 gedi_tbl$orbit_ID <- substr(gedi_tbl$shot_number, 1, 5) #see: https://lpdaac.usgs.gov/documents/986/GEDI02_UserGuide_V2.pdf
 #time
 gedi_tbl$year <- format(as.POSIXct(gedi_tbl$time, format = "%Y-%m-%dT%H:%M:%S"), format = "%Y")
