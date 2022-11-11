@@ -30,7 +30,8 @@ source("000_R_presettings.R")#different path, due to .Rmd
 #####
 ### general settings
 #####
-comm_filt <- paste0(comm, "no2022_")
+# comm_filt <- paste0(comm, "no2022_inclMix_")
+comm_filt <- paste0(comm, "no2022_onlynight")
 comm_mod <- paste0(comm_filt, "val_21_total")
 ```
 
@@ -161,13 +162,19 @@ heaty_r2 <-
   geom_tile() + 
   xlab(label= "month")
 print(heaty_r2)
+ggsave(filename = paste0(fig_path, "070_heaty_r2", comm_mod, ".pdf"),
+       plot = heaty_r2,
+       width = 200, height = 150, units = "mm", dpi = 300)
+
 
 heaty_rmsesd <- 
   ggplot(data = heat_rmsesd, mapping = aes(x = month, y = corine, fill = RMSE_sd)) + 
   geom_tile() + 
   xlab(label= "month")
 print(heaty_rmsesd)
-
+ggsave(filename = paste0(fig_path, "070_heaty_rmsesd", comm_mod, ".pdf"),
+       plot = heaty_rmsesd,
+       width = 200, height = 150, units = "mm", dpi = 300)
 
 #####
 ### Performance across corine
@@ -182,6 +189,9 @@ print(points_corine)
 points_month <- ggplot(errors_month_long, aes(month, value))+
   geom_point(aes(colour = factor(error_metric)), size = 5)
 print(points_month)
+ggsave(filename = paste0(fig_path, "070_points_month", comm_mod, ".pdf"),
+       plot = points_month,
+       width = 200, height = 150, units = "mm", dpi = 300)
 
 #####
 ### NDVI and PAI over time #take final aestetics from 116 plotting
@@ -190,26 +200,37 @@ box_pai <- ggplot(test_data, aes(x=as.character(month), y=pai, fill = as.charact
   geom_boxplot()+
 theme_bw()+
   xlab("Date")+
-  ylab("PAI")
+  ylab("PAI")+
+  scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
+                labels = trans_format("log10", math_format(10^.x)))
+print(box_pai)
+ggsave(filename = paste0(fig_path, "070_box_pai", comm_mod, ".pdf"),
+       plot = box_pai,
+       width = 200, height = 150, units = "mm", dpi = 300)
 
 box_ndvi <- ggplot(test_data, aes(x=as.character(month), y=NDVI, fill = as.character(corine))) +
   geom_boxplot()+
 theme_bw()+
   xlab("Date")+
   ylab("NDVI")
-
+print(box_ndvi)
+ggsave(filename = paste0(fig_path, "070_box_ndvi", comm_mod, ".pdf"),
+       plot = box_ndvi,
+       width = 200, height = 150, units = "mm", dpi = 300)
 #####
 ### variable importance
 #####
-plot_varImp <- plot(varImp(model))
-
+plot_varImp <- ggplot(varImp(model))
+print(plot_varImp)
+ggsave(filename = paste0(fig_path, "070_plot_varImp", comm_mod, ".pdf"),
+       plot = plot_varImp,
+       width = 200, height = 150, units = "mm", dpi = 300)
 ```
 
 ## Plots
 
 
 ```{r pressure, echo=FALSE}
-
 plot(test_data$pai, test_data$predicted)
 ```
 ## seasonal development PAI and NDVI
