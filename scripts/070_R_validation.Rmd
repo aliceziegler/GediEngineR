@@ -22,6 +22,7 @@ library(caret)
 library(ranger)
 library(dplyr)
 library(ggplot2)
+library(viridis)
 library(data.table)
 library(sf)
 library(scales)
@@ -30,8 +31,8 @@ source("000_R_presettings.R")#different path, due to .Rmd
 #####
 ### general settings
 #####
-# comm_filt <- paste0(comm, "no2022_inclMix_")
-comm_filt <- paste0(comm, "no2022_onlynight")
+comm_filt <- paste0(comm, "no2022_inclMix_")
+# comm_filt <- paste0(comm, "no2022_onlynight")
 comm_mod <- paste0(comm_filt, "val_21_total")
 ```
 
@@ -157,9 +158,10 @@ heat_rmsesd$corine <- as.factor(heat_rmsesd$corine)
 #####
 ### heatmap performance
 ##### 
-heaty_r2 <- 
+heaty_r2 <-
   ggplot(data = heat_r2, mapping = aes(x = month, y = corine, fill = Rsquared)) + 
   geom_tile() + 
+  scale_fill_viridis(discrete = F) +
   xlab(label= "month")
 print(heaty_r2)
 ggsave(filename = paste0(fig_path, "070_heaty_r2", comm_mod, ".pdf"),
@@ -170,6 +172,8 @@ ggsave(filename = paste0(fig_path, "070_heaty_r2", comm_mod, ".pdf"),
 heaty_rmsesd <- 
   ggplot(data = heat_rmsesd, mapping = aes(x = month, y = corine, fill = RMSE_sd)) + 
   geom_tile() + 
+  # scale_fill_viridis(discrete = F) +
+  scale_fill_viridis_c(limits = c(0, 2.5), oob = scales::squish) +
   xlab(label= "month")
 print(heaty_rmsesd)
 ggsave(filename = paste0(fig_path, "070_heaty_rmsesd", comm_mod, ".pdf"),
