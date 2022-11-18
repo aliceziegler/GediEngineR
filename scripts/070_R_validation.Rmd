@@ -96,7 +96,20 @@ test_data <- data.frame(test_data, pred = predict(model, st_drop_geometry(test_d
 tbl_cor <- table(as.data.frame(train_data)[,"corine"])
 tbl_mon <- table(as.data.frame(train_data)[,"month"])
 tbl_n_cor_mon <- table(as.data.frame(train_data)[,c("month", "corine")])
+write.csv(tbl_n_cor_mon, paste0(fig_path, "070_n_cor_mon_tbl", comm_mod, ".csv"))
 
+tbl_n_cor_mon_long <- as.data.frame(tbl_n_cor_mon)
+
+n_cor_mon <-
+  ggplot(data = tbl_n_cor_mon_long, mapping = aes(x = month, y = corine, fill = Freq)) + 
+  geom_tile() + 
+  geom_text(aes(label = round(Freq, 2))) +
+  scale_fill_viridis(discrete = F) +
+  xlab(label= "month")
+print(n_cor_mon)
+ggsave(filename = paste0(fig_path, "070_n_cor_mon_fig", comm_mod, ".pdf"),
+       plot = n_cor_mon,
+       width = 200, height = 150, units = "mm", dpi = 300)
 ```
 
 
@@ -112,6 +125,7 @@ errors_corine_lst <- lapply(corine_unique, function(i){
 })
 errors_corine <- merge(corine_aggregate, data.frame(corine = corine_unique, as.data.frame(do.call("rbind", errors_corine_lst))), by = "corine")
 errors_corine$RMSE_sd <- errors_corine$RMSE/errors_corine$pai_obs_test_sd
+write.csv(errors_corine, paste0(fig_path, "070_errors_corine_", comm_mod, ".csv"))
 #create long table for plot
 errors_corine_long <- melt(setDT(errors_corine), id.vars = c("corine"), 
                           variable.name = "error_metric")
@@ -123,6 +137,7 @@ errors_month_lst <- lapply(month_unique, function(i){
 })
 errors_month <- merge(month_aggregate, data.frame(month = month_unique, as.data.frame(do.call("rbind", errors_month_lst))), by = "month")
 errors_month$RMSE_sd <- errors_month$RMSE/errors_month$pai_obs_test_sd
+write.csv(errors_month, paste0(fig_path, "070_errors_month_", comm_mod, ".csv"))
 #create long table for plot
 errors_month_long <- melt(setDT(errors_month), id.vars = c("month"), 
                           variable.name = "error_metric")
@@ -143,12 +158,16 @@ heat_r2 <- errors_cor_mon[,c("month", "corine", "Rsquared")]
 heat_r2 <- heat_r2[!duplicated(heat_r2),]
 # change corine to factors so there are no gaps for missing classes
 heat_r2$corine <- as.factor(heat_r2$corine)
+heat_r2_cross <-  reshape(heat_r2, idvar = "corine", timevar = "month", direction = "wide")
+write.csv(heat_r2_cross, paste0(fig_path, "070_heat_r2_cross_", comm_mod, ".csv"))
 
 #wide table
 heat_rmsesd <- errors_cor_mon[,c("month", "corine", "RMSE_sd")]
 heat_rmsesd <- heat_rmsesd[!duplicated(heat_rmsesd),]
 # change corine to factors so there are no gaps for missing classes
 heat_rmsesd$corine <- as.factor(heat_rmsesd$corine)
+heat_rmsesd_cross <- reshape(heat_rmsesd, idvar = "corine", timevar = "month", direction = "wide")
+write.csv(heat_rmsesd_cross, paste0(fig_path, "070_heat_rmsesd_cross_", comm_mod, ".csv"))
 
 ```
 
@@ -161,6 +180,7 @@ heat_rmsesd$corine <- as.factor(heat_rmsesd$corine)
 heaty_r2 <-
   ggplot(data = heat_r2, mapping = aes(x = month, y = corine, fill = Rsquared)) + 
   geom_tile() + 
+  geom_text(aes(label = round(Rsquared, 2))) +
   scale_fill_viridis(discrete = F) +
   xlab(label= "month")
 print(heaty_r2)
@@ -169,10 +189,10 @@ ggsave(filename = paste0(fig_path, "070_heaty_r2", comm_mod, ".pdf"),
        width = 200, height = 150, units = "mm", dpi = 300)
 
 
-heaty_rmsesd <- 
+heaty_rmsesd <-
   ggplot(data = heat_rmsesd, mapping = aes(x = month, y = corine, fill = RMSE_sd)) + 
   geom_tile() + 
-  # scale_fill_viridis(discrete = F) +
+  geom_text(aes(label = round(RMSE_sd, 2))) +
   scale_fill_viridis_c(limits = c(0, 2.5), oob = scales::squish) +
   xlab(label= "month")
 print(heaty_rmsesd)
@@ -231,71 +251,13 @@ ggsave(filename = paste0(fig_path, "070_plot_varImp", comm_mod, ".pdf"),
        width = 200, height = 150, units = "mm", dpi = 300)
 ```
 
-## Plots
+## obs ~ pred
 
 
 ```{r pressure, echo=FALSE}
-plot(test_data$pai, test_data$predicted)
-```
-## seasonal development PAI and NDVI
-```{r pressure, echo=FALSE}
-# PAI_plot <-
-  ggplot(train_data, aes(x=as.character(month), y=pai, fill = corine_factor)) +
-  geom_boxplot()+
-  # scale_fill_manual(values = c("arableland" = "lightgoldenrod3","pastures" = "darkorange","broadleaved" = "darkolivegreen1",
-  #                              "coniferous" = "springgreen3","mixed" = "forestgreen"),
-  #                   labels = c("arable land", "pastures", "broad-leaved", "coniferous", "mixed forest"))+
-  # scale_x_discrete(labels=c("2019-04-22" = "April 22", "2019-05-16" = "May 16",
-  #                           "2019-06-25" = "June 25", "2019-06-28" = "June 28", "2019-07-23" = "July 23", "2019-08-22" = "August 22"))+
-  theme_bw()+
-  xlab("month")+
-  ylab("PAI")+
-  # scale_y_continuous(breaks = c(0,2,4,6), labels = c("0", "2", "4", "     6"))+
-  scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
-                labels = trans_format("log10", math_format(10^.x)))+
-  theme(legend.position = c(0.11, 0.8),
-        legend.title = element_blank(),
-        legend.text = element_text(size = 12),
-        legend.background = element_rect(linetype = 1, size = 0.5, colour = 1),
-        # axis.text.x = element_text(colour = "black", size = 12),
-        # axis.title.x = element_text(size = 12),
-        axis.text.x = element_blank(),
-        axis.title.x = element_blank(),
-        axis.ticks.x = element_blank(),
-        axis.text.y = element_text(colour = "black", size = 12),
-        axis.title.y = element_text(size = 12))#, margin(0,0,0,0)))
-
-# NDVI_plot <-
-  ggplot(train_data, aes(x=as.character(month), y=NDVI, fill = corine_factor)) +
-  geom_boxplot()+
-  # scale_fill_manual(values = c("arableland" = "lightgoldenrod3","pastures" = "darkorange","broadleaved" = "darkolivegreen1",
-  #                              "coniferous" = "springgreen3","mixed" = "forestgreen"),
-  #                   labels = c("arable land", "pastures", "broad-leaved", "coniferous", "mixed forest"))+
-  # scale_x_discrete(labels=c("2019-04-22" = "April 22", "2019-05-16" = "May 16",
-  #                           "2019-06-25" = "June 25", "2019-06-28" = "June 28", "2019-07-23" = "July 23", "2019-08-22" = "August 22"))+
-  theme_bw()+
-  xlab("month")+
-  ylab("NDVI")+
-  theme(legend.position = c(0.11, 0.23),
-        legend.title = element_blank(),
-        legend.text = element_text(size = 12),
-        legend.background = element_rect(linetype = 1, size = 0.5, colour = 1),
-        axis.text.x = element_text(colour = "black", size = 12),
-        axis.title.x = element_text(size = 12),
-        axis.text.y = element_text(colour = "black", size = 12),
-        axis.title.y = element_text(size = 12))
-
-# plot_list <- list(PAI_plot, NDVI_plot)
-# plot_grid <-
-#   ggpubr::ggarrange(plotlist = plot_list, ncol= 1, nrow = 2, heights = c(0.9, 1),
-#                     common.legend = T, legend = c("bottom", "left"),
-#                     font.label = list(size = 3))
-
-# ggsave(filename = paste0(fig_path, "116_temp_development_combi.png"),
-#        plot = plot_grid,
-#        width = 200, height = 150, units = "mm", dpi = 300)
-# 
-# ggsave(filename = paste0(fig_path, "116_temp_development_combi.pdf"),
-#        plot = plot_grid,
-#        width = 200, height = 150, units = "mm", dpi = 300)
+ ggplot(test_data, aes(pai, pred))+ 
+  geom_point()
+ggsave(filename = paste0(fig_path, "070_plot_obs_pred", comm_mod, ".pdf"),
+       plot = plot_varImp,
+       width = 200, height = 150, units = "mm", dpi = 300)
 ```
