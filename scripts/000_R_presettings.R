@@ -11,9 +11,9 @@ rm(list=ls())
 ### stuff to play with
 ####################################################################
 ####################################################################
-# machine <- "local"
+machine <- "local"
 # machine <- "cluster" # MaRC3
-machine <- "rstudioserver" # hosted on MaRC3
+# machine <- "rstudioserver" # hosted on MaRC3
 
 comm <- "_all_1col_" ## short descriptive comment to use e.g. for file naming
 
@@ -70,3 +70,7 @@ out_path <- paste0(proj_path, "out/")
 if(!dir.exists(paste0(proj_path, "fig/"))){
   dir.create(paste0(proj_path, "fig/"))}
 fig_path <- paste0(proj_path, "fig/")
+#pred_path
+if(!dir.exists(paste0(out_path, "predictions/"))){
+  dir.create(paste0(out_path, "predictions/"))}
+pred_path <- paste0(out_path, "predictions/")
