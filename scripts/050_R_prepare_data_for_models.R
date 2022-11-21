@@ -14,16 +14,18 @@ rm(list=ls())
 #####
 library(tidyr)
 library(stringr)
+library(dplyr)
 source("scripts/000_R_presettings.R")
 
 #####
 ### general settings
 #####
 out_21 <- T
-sample <- T
+random_sample <- F
+balanced_sample <- T
 sample_size <- 150000
 comm_filt <- paste0(comm, "no2022_inclMix_")
-comm_mod <- paste0(comm_filt, "val_21_total")
+comm_mod <- paste0(comm_filt, "val_21_total_balanced_")
 
 #####
 ### read data
@@ -46,11 +48,21 @@ variables <- names(data)[c(which(names(data) == "B2") : which(names(data) == "ND
 ########################################################################################
 ### Do stuff
 ########################################################################################
-if (sample == T){
+if (random_sample == T){
 set.seed(100)
 data <- data[sample(nrow(data), size = sample_size, replace = F), ]
 data <- data[order(data$id_after_filter),]
 }
+
+if (balanced_sample == T){
+  set.seed(100)
+  freq_by_group <- data %>%
+    group_by(corine, month) %>%
+    summarise(n = n())
+  min_freq <- min(freq_by_group$n)
+  data <- data %>% group_by(corine, month) %>% slice_sample(n=min_freq)
+}
+
 
 if(out_21 <- T){
   data_2021 <- data[as.Date(data$time) >= as.Date("2021-01-01"),]
