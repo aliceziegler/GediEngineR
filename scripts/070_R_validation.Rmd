@@ -33,7 +33,11 @@ source("000_R_presettings.R")#different path, due to .Rmd
 #####
 comm_filt <- paste0(comm, "no2022_inclMix_")
 # comm_filt <- paste0(comm, "no2022_onlynight")
-comm_mod <- paste0(comm_filt, "val_21_total")
+# comm_mod <- paste0(comm_filt, "val_21_total")
+# comm_mod <- paste0(comm_filt, "val_21_total_balanced_")
+comm_mod <- paste0(comm_filt, "val_21_total_balanced_150000")
+
+
 ```
 
 ## Preparation of data
@@ -113,7 +117,7 @@ ggsave(filename = paste0(fig_path, "070_n_cor_mon_fig", comm_mod, ".pdf"),
 ```
 
 
-## calculate errors for all and subgroups and prepare data fro plotting
+## calculate errors for all and subgroups and prepare data for plotting
 ```{r}
 # errors total model
 errors <- defaultSummary(data.frame(obs = test_data$pai, pred = test_data$pred))

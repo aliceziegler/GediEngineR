@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --time=400:00:00
+#SBATCH --time=10:00:00
 #SBATCH --ntasks=1 ###RS 10.10.
 #SBATCH --cpus-per-task=20
 #SBATCH --output=../../slurm/examplejob_%A.out
