@@ -21,6 +21,7 @@ library(dplyr)
 library(rnaturalearth)
 library(sf)
 library(RColorBrewer)
+library(animation)
 source("scripts/000_R_presettings.R")
 
 #####
@@ -34,7 +35,7 @@ comm_mod <- paste0(comm_filt, "val_21_total")
 #####
 ### read data
 #####
-lst_preds <- list.files(pred_path, pattern = ".tif", full.names = T)
+lst_preds <- list.files(paste0(pred_path, "GEDI_predictions_median_pai"), pattern = ".tif", full.names = T)
 
 # corine
 corine <- raster(paste0(corine_path, "040_corine_hesse.tif"))
@@ -91,15 +92,33 @@ map_plot <-
 return(map_plot)
 })
 
+# rst_list <- lapply(seq(lst_preds), function(i){
+#
+#   rst <- raster(lst_preds[i])
+#   return(rst)
+# })
+#
+# rst_brick <- brick(rst_list)
+#
+# anm <- animate(rst_brick, n = 2)
 
-#####
-### plotting corine
-#####
-
-ggR(corine)+
-  geom_tile()+
-  scale_fill_distiller(palette = 5)
-
+animation::saveGIF(
+  expr = {
+    plot(plot_list[[1]])
+    plot(plot_list[[2]])
+    plot(plot_list[[3]])
+    plot(plot_list[[4]])
+    plot(plot_list[[5]])
+    plot(plot_list[[6]])
+    plot(plot_list[[7]])
+    plot(plot_list[[8]])
+    plot(plot_list[[9]])
+    plot(plot_list[[10]])
+    plot(plot_list[[11]])
+    plot(plot_list[[12]])
+    },
+  movie.name = "prediction_median.gif"
+)
 
 
 ########################################################################################
