@@ -77,7 +77,7 @@ crs(corine) <- "+proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=
 gee_epsg3035 <- st_transform(gee, crs = 3035)
 corine_crop_epsg3035 <- crop(corine, gee_epsg3035)
 corine_utm <- projectRaster(corine_crop_epsg3035, crs = "+proj=utm +zone=32 +ellps=WGS84 +datum=WGS84 +units=m +no_defs ", method = "ngb") # ngb for categorial
-# writeRaster(corine_utm, filename = paste0(corine_path, "corine_hesse.tif"))
+# writeRaster(corine_utm, filename = paste0(corine_path, "040_corine_hesse.tif"))
 rm(gee_epsg3035)
 #####
 ### extract
