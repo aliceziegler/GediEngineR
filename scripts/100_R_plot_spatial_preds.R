@@ -20,6 +20,7 @@ library(viridis)
 library(dplyr)
 library(rnaturalearth)
 library(sf)
+library(RColorBrewer)
 source("scripts/000_R_presettings.R")
 
 #####
@@ -35,9 +36,15 @@ comm_mod <- paste0(comm_filt, "val_21_total")
 #####
 lst_preds <- list.files(pred_path, pattern = ".tif", full.names = T)
 
+# corine
+corine <- raster(paste0(corine_path, "040_corine_hesse.tif"))
+
 # hessen:
 hessen = rnaturalearth::ne_states(country = "Germany", returnclass = c("sf")) %>% dplyr::filter(name == "Hessen") %>% select(name)
 hessen = st_cast(hessen, "POLYGON")
+hessen_utm <- as_Spatial(st_transform(hessen, crs = crs(corine)))
+
+
 ########################################################################################
 ### Do stuff
 ########################################################################################
@@ -83,3 +90,57 @@ map_plot <-
   width = 200, height = 150, units = "mm", dpi = 300)
 return(map_plot)
 })
+
+
+#####
+### plotting corine
+#####
+
+ggR(corine)+
+  geom_tile()+
+  scale_fill_distiller(palette = 5)
+
+
+
+########################################################################################
+### plotting corine
+########################################################################################
+
+
+#
+# breaks_x <- c(464839.928, 478858.769)#471811.712, , 485905.839)
+# breaks_y <- c(5627660.767, 5638823.664)
+# labels_x <- c("8°30.0'", "8°42.0'")
+# labels_y <- c("50°48.0'", "50°54.0'")
+
+
+gg_cor <-
+ggR(corine, forceCat = TRUE, geom_raster = TRUE)+
+  scale_fill_manual(values = c("0" = "white", "12" = "lightgoldenrod3","18" = "darkorange","23" = "darkolivegreen1",
+                               "24" = "springgreen3","25" = "forestgreen"),
+                    labels = c("other", "arable land", "pastures", "broad-leaved", "coniferous", "mixed forest"))+
+  # scale_x_continuous(name = "Longitude", expand = c(0,0), breaks = breaks_x, labels = labels_x)+
+  # scale_y_continuous(name = "Latitude", expand = c(0,0), breaks = breaks_y, labels = labels_y)+#n.breaks = 3)+
+  geom_polygon(mapping = aes(x = long, y = lat),data = hessen_utm, color = "black", fill = NA, size = 1)+ #(0.1)
+  theme(panel.grid = element_line(color = "grey80"),
+        axis.text.y = element_text(angle = 90, hjust = 0.5, colour = "black", size = 6),
+        axis.text.x = element_text(colour = "black", size = 6),
+        axis.title.x = element_text(size = 8),
+        axis.title.y = element_text(size = 8),
+        # plot.title = element_text(size = 5, margin = margin(-0.5,0,0,0)),
+        legend.text = element_text(size = 8),
+        legend.title = element_text(size = 8),
+        legend.key.size = unit(0.25, "cm"),
+        axis.ticks = element_line(size = 0.25),
+        axis.ticks.length = unit(0.15, "cm"))+
+  # plot.margin = unit(c(0.25,-0.6,-0.35,-0.6), "cm"))+
+  guides(fill=guide_legend(title="land cover"))
+
+ggsave(file.path(paste0(fig_path, "100_corine_map.png")),
+       plot = gg_cor,
+       width = 150, height = 80, units = "mm",
+       dpi = 300)
+ggsave(file.path(paste0(fig_path, "100_corine_map.pdf")),
+       plot = gg_cor,
+       width = 150, height = 80, units = "mm",
+       dpi = 300)
