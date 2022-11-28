@@ -25,9 +25,9 @@ source("scripts/000_R_presettings.R")
 #####
 ### general settings
 #####
-no_2022 <- F
-only_night <- T
-comm_filt <- paste0(comm, "no2022_inclMix")
+no_2022 <- T
+only_night <- F
+comm_filt <- paste0(comm, "")
 #####
 ### read data
 #####
@@ -58,7 +58,8 @@ gee <- gee[!as.logical(rowSums(is.na(gee[,variables]))), ]
 ### different filters to play with
 ########################################################################################
 if(no_2022 == T){ # ~3 min
-  gee <- gee[format(as.POSIXct(gee$time, format = "%Y-%m-%dT%H:%M:%S"), format = "%Y") != 2022,]
+  # gee <- gee[format(as.POSIXct(gee$time, format = "%Y-%m-%dT%H:%M:%S"), format = "%Y") != 2022,]
+  gee <- gee[gee$year != 2022,]
 }
 
 if(only_night == T){
@@ -76,6 +77,7 @@ crs(corine) <- "+proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=
 gee_epsg3035 <- st_transform(gee, crs = 3035)
 corine_crop_epsg3035 <- crop(corine, gee_epsg3035)
 corine_utm <- projectRaster(corine_crop_epsg3035, crs = "+proj=utm +zone=32 +ellps=WGS84 +datum=WGS84 +units=m +no_defs ", method = "ngb") # ngb for categorial
+# writeRaster(corine_utm, filename = paste0(corine_path, "corine_hesse.tif"))
 rm(gee_epsg3035)
 #####
 ### extract
