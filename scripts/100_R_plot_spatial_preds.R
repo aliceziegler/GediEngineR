@@ -51,9 +51,7 @@ map_plot <-
   ggR(rst, geom_raster = TRUE) +
   # scale_fill_gradientn(name = "PAI", colors = LAI_col(25))+
   # scale_fill_gradientn(name = "PAI", colors = scico_pal(100), na.value = "white")+
-    scale_fill_viridis()+
-
-
+    scale_fill_viridis(limits = c(0, 3.5), oob = scales::squish)+
   # scale_fill_scico(palette = "batlow", aesthetics = "colour", alpha = NULL,
   # begin = 0,
   # end = 1,
@@ -79,8 +77,9 @@ map_plot <-
         axis.ticks = element_line(size = 0.02),
         axis.ticks.length = unit(0.05, "cm"),
         plot.margin = unit(c(0.4 , -1.2,-0.6,-1.0), "cm"))
+# print(map_plot)
   ggsave(filename = paste0(fig_path, "070_map_prediction_month_", i, "_", comm_mod, ".pdf"),
-         plot = map_plot,
-         width = 200, height = 150, units = "mm", dpi = 300)
+  plot = map_plot,
+  width = 200, height = 150, units = "mm", dpi = 300)
 return(map_plot)
 })
