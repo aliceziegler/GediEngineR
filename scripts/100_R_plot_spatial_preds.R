@@ -86,7 +86,7 @@ map_plot <-
         axis.ticks = element_line(size = 0.02),
         axis.ticks.length = unit(0.05, "cm"),
         plot.margin = unit(c(0.4 , -1.2,-0.6,-1.0), "cm"))
-# print(map_plot)
+print(map_plot)
   ggsave(filename = paste0(fig_path, "070_map_prediction_month_", i, "_", comm_mod, "_", comm_viz, ".pdf"),
   plot = map_plot,
   width = 200, height = 150, units = "mm", dpi = 300)
@@ -118,7 +118,7 @@ animation::saveGIF(
     plot(plot_list[[11]])
     plot(plot_list[[12]])
     },
-  movie.name = "prediction_median.gif"
+  movie.name = paste0("prediction_", comm_viz, ".gif")
 )
 
 
