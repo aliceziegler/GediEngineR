@@ -30,12 +30,13 @@ source("scripts/000_R_presettings.R")
 comm_filt <- paste0(comm, "no2022_inclMix_")
 # comm_filt <- paste0(comm, "no2022_onlynight")
 comm_mod <- paste0(comm_filt, "val_21_total")
-
+comm_viz <- "max"
+plot_cor <- F
 
 #####
 ### read data
 #####
-lst_preds <- list.files(paste0(pred_path, "GEDI_predictions_median_pai"), pattern = ".tif", full.names = T)
+lst_preds <- list.files(paste0(pred_path, "GEDI_predictions_", comm_viz, "_pai"), pattern = ".tif", full.names = T)
 
 # corine
 corine <- raster(paste0(corine_path, "040_corine_hesse.tif"))
@@ -86,7 +87,7 @@ map_plot <-
         axis.ticks.length = unit(0.05, "cm"),
         plot.margin = unit(c(0.4 , -1.2,-0.6,-1.0), "cm"))
 # print(map_plot)
-  ggsave(filename = paste0(fig_path, "070_map_prediction_month_", i, "_", comm_mod, ".pdf"),
+  ggsave(filename = paste0(fig_path, "070_map_prediction_month_", i, "_", comm_mod, "_", comm_viz, ".pdf"),
   plot = map_plot,
   width = 200, height = 150, units = "mm", dpi = 300)
 return(map_plot)
@@ -125,7 +126,7 @@ animation::saveGIF(
 ### plotting corine
 ########################################################################################
 
-
+if (plot_cor == T){
 #
 # breaks_x <- c(464839.928, 478858.769)#471811.712, , 485905.839)
 # breaks_y <- c(5627660.767, 5638823.664)
@@ -163,3 +164,4 @@ ggsave(file.path(paste0(fig_path, "100_corine_map.pdf")),
        plot = gg_cor,
        width = 150, height = 80, units = "mm",
        dpi = 300)
+}
