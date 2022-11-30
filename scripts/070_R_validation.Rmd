@@ -33,10 +33,10 @@ source("000_R_presettings.R")#different path, due to .Rmd
 #####
 comm_filt <- paste0(comm, "no2022_inclMix_")
 # comm_filt <- paste0(comm, "no2022_onlynight")
-# comm_mod <- paste0(comm_filt, "val_21_total")
+comm_mod <- paste0(comm_filt, "val_21_total")
 # comm_mod <- paste0(comm_filt, "val_21_total_balanced_")
 # comm_mod <- paste0(comm_filt, "val_21_total_balanced_150000")
-comm_mod <- paste0(comm_filt, "val_21_total_balanced_150000_props")
+# comm_mod <- paste0(comm_filt, "val_21_total_balanced_150000_props")
 
 
 ```
@@ -94,6 +94,15 @@ colnames(cor_mon_aggregate)[which(colnames(cor_mon_aggregate) %in% c("pai.mean",
 # predict points of 2021
 ```{r}
 test_data <- data.frame(test_data, pred = predict(model, st_drop_geometry(test_data)))
+```
+
+# external error metrics 
+```{r}
+smmry_data <- data.frame(obs = test_data$pai, pred = test_data$pred)
+smmry <- defaultSummary(smmry_data)
+smmry <- as.data.frame(t(smmry))
+smmry$RMSE_sd_obs <- smmry$RMSE/sd(smmry_data$obs)
+write.csv(smmry, paste0(fig_path, "070_error_smmry_external", comm_mod, ".csv"))
 ```
 
 ## frequencies of points by month and corine class (train_data)
