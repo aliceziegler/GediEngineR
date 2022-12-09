@@ -22,6 +22,8 @@ library(rnaturalearth)
 library(sf)
 library(RColorBrewer)
 library(animation)
+library(gtools)
+
 source("scripts/000_R_presettings.R")
 
 #####
@@ -30,13 +32,16 @@ source("scripts/000_R_presettings.R")
 comm_filt <- paste0(comm, "no2022_inclMix_")
 # comm_filt <- paste0(comm, "no2022_onlynight")
 comm_mod <- paste0(comm_filt, "val_21_total")
-comm_viz <- "min"
+comm_comp <- "median"
+
 plot_cor <- F
 
 #####
 ### read data
 #####
-lst_preds <- list.files(paste0(pred_path, "GEDI_predictions_", comm_viz, "_pai"), pattern = ".tif", full.names = T)
+lst_preds <- list.files(paste0(pred_path, "/", comm_comp, "/"), pattern = ".tif$", full.names = T)
+lst_preds <- mixedsort(lst_preds) #sort so that files with 10, 11, 12 are sorted at the end
+
 
 # corine
 corine <- raster(paste0(corine_path, "040_corine_hesse.tif"))
@@ -121,7 +126,7 @@ map_plot <-
   # scale_x_continuous(name = "Longitude", expand = c(0,0), breaks = breaks_x, labels = labels_x)+
   # scale_y_continuous(name = "Latitude", expand = c(0,0), breaks = breaks_y, labels = labels_y)+#n.breaks = 3)+
   ggtitle(paste0("month_", i)) +
-  geom_sf(data = hessen, fill =NA, color = "red")+
+  geom_sf(data = hessen, fill = NA, color = "red")+
   # # geom_polygon(mapping = aes(x = long, y = lat, group = group),data = overlay_df, color = "red", fill = NA)+
   # geom_polygon(mapping = aes(x = long, y = lat, group = group),data = exmpl_df, color = "black", fill = NA, size = 0.4)+ #(0.1)
   # geom_text(mapping = aes(x = X, y = Y, label = area), data = pred_exmpl_labels, colour = "black", fontface = "bold", size = 4)+ #size = 1.8,
@@ -138,11 +143,11 @@ map_plot <-
         axis.ticks.length = unit(0.05, "cm"),
         plot.margin = unit(c(0.4 , -1.2,-0.6,-1.0), "cm"))
 print(map_plot)
-  ggsave(filename = paste0(fig_path, "070_map_prediction_month_", i, "_", comm_mod, "_", comm_viz, ".pdf"),
+  ggsave(filename = paste0(fig_path, "070_map_prediction_month_", i, "_", comm_mod, "_", comm_comp, ".pdf"),
   plot = map_plot,
   width = 200, height = 150, units = "mm", dpi = 300)
 
-  ggsave(filename = paste0(fig_path, "070_map_prediction_month_", i, "_", comm_mod, "_", comm_viz, ".png"),
+  ggsave(filename = paste0(fig_path, "070_map_prediction_month_", i, "_", comm_mod, "_", comm_comp, ".png"),
          plot = map_plot,
          width = 200, height = 150, units = "mm", dpi = 300)
 return(map_plot)
@@ -173,6 +178,6 @@ animation::saveGIF(
     plot(plot_list[[11]])
     plot(plot_list[[12]])
     },
-  movie.name = paste0("prediction_", comm_viz, ".gif")
+  movie.name = paste0("prediction_", comm_comp, ".gif")
 )
 
