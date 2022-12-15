@@ -143,25 +143,33 @@ map_plot <-
         axis.ticks.length = unit(0.05, "cm"),
         plot.margin = unit(c(0.4 , -1.2,-0.6,-1.0), "cm"))
 print(map_plot)
-  ggsave(filename = paste0(fig_path, "070_map_prediction_month_", i, "_", comm_mod, "_", comm_comp, ".pdf"),
+  ggsave(filename = paste0(fig_path, "100_map_prediction_month_", i, "_", comm_mod, "_", comm_comp, ".pdf"),
   plot = map_plot,
   width = 200, height = 150, units = "mm", dpi = 300)
 
-  ggsave(filename = paste0(fig_path, "070_map_prediction_month_", i, "_", comm_mod, "_", comm_comp, ".png"),
+  ggsave(filename = paste0(fig_path, "100_map_prediction_month_", i, "_", comm_mod, "_", comm_comp, ".png"),
          plot = map_plot,
          width = 200, height = 150, units = "mm", dpi = 300)
+
 return(map_plot)
 })
 
-# rst_list <- lapply(seq(lst_preds), function(i){
-#
-#   rst <- raster(lst_preds[i])
-#   return(rst)
-# })
-#
-# rst_brick <- brick(rst_list)
-#
-# anm <- animate(rst_brick, n = 2)
+
+plot_grid <-
+  ggpubr::ggarrange(plotlist = plot_list[c(3,5,7,9)], ncol= 4, nrow = 1, #heights = c(1,1,1,0.2),
+                    common.legend = T, legend = c("bottom", "left"))
+                   # ,        font.label = list(size = 3))
+
+ggsave(filename = paste0(fig_path, "100_plot_grid_3_5_7_9", "_", comm_mod, "_", comm_comp, ".pdf"),
+       plot = plot_grid,
+       width = 200, height = 150, units = "mm", dpi = 300)
+
+ggsave(filename = paste0(fig_path, "100_plot_grid_3_5_7_9", "_", comm_mod, "_", comm_comp, ".png"),
+       plot = plot_grid,
+       width = 200, height = 150, units = "mm", dpi = 300)
+
+
+### animation
 
 animation::saveGIF(
   expr = {
