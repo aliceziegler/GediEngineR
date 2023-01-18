@@ -86,13 +86,45 @@ plot_pai <- function(dat, plot_comm){
 }
 
 pai_spat_pred_box <- plot_pai(pred_pai_df, "spat_pred")
-###ttest 2021- spat 2021
-sample_spat_pred <- sample(pred_pai_df$pai, nrow(test_data_21))
-a <- t.test(test_data_21$pai, sample_spat_pred, paired = T)
-###ttest 2021-spat 2021 forest
-frst_21_test <- test_data_21$pai[test_data_21$corine %in% c(23,24,25)]
-frst_21_spat <- sample(pred_pai_df$pai[pred_pai_df$corine %in% c(23,24,25)], size = length(frst_21_test))
-b <- t.test(frst_21_spat, frst_21_test, paired = T)
+
+
+###calculating median per month and doing  correlation test
+# shows if yearly dynamic of corine classes is correlated
+# general datasets: test_data_21 ist test datensatz
+# predicted pixel dataset over hesse: pred_pai_df
+cor_classes <- sort(unique(test_data_21$corine))
+
+cor_lst <- lapply(cor_classes, function(class){
+  print(class)
+  spat_cor <- pred_pai_df[pred_pai_df$corine %in% c(class),]
+  spat_cor_agg <- aggregate(pai ~ month, data = spat_cor, FUN= median)
+  test_cor <- test_data_21[test_data_21$corine %in% c(class),]
+  test_cor_agg <- aggregate(pai ~ month, data = test_cor, FUN= median)
+  # if(nrow(test_cor_agg) == 12){
+  # cor_test <- cor.test(test_cor_agg$pai, spat_cor_agg$pai)
+  # plot(spat_cor_agg)
+  # plot(test_cor_agg)
+  # }
+  if(nrow(test_cor_agg) != 12){
+  spat_cor_agg <- spat_cor_agg[spat_cor_agg$month %in% as.numeric(test_cor_agg$month),]
+  }
+  cor_test <- cor.test(test_cor_agg$pai, spat_cor_agg$pai)
+  # plot(spat_cor_agg)
+  # plot(test_cor_agg)
+  return(cor_test)
+})
+
+cor_df_lst <- lapply(cor_lst, function(i){
+  # i <- cor_lst[[1]]
+  p_val <- i$p.value
+  est <- as.numeric(i$estimate)
+  df_cor <- data.frame(correlation = est, pvalue = p_val)
+})
+cor_df <- do.call("rbind", cor_df_lst)
+cor_df <- data.frame(corine = cor_classes, cor_df)
+write.csv(cor_df, paste0(fig_path, "095_yearly_dynamic_correlation_testdata_spatprediction", comm_mod, ".csv"), row.names = F)
+
+
 
 ### plot pixel frequency per month and corine
 
