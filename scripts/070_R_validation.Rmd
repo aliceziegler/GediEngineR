@@ -316,7 +316,34 @@ ggsave(filename = paste0(fig_path, "070_points_month", comm_mod, ".pdf"),
 #####
 ### variable importance
 #####
-plot_varImp <- ggplot(varImp(model))
+df_var <- varImp(model)$importance
+colnames(df_var) <- "importance"
+df_var$var <- row.names(df_var)
+df_var <- df_var[order(df_var$importance),]
+df_var$var <- factor(row.names(df_var), levels = df_var$var)
+df_var$labels <- c("NIR - Band 08", 
+                   "Vegetation red edge - Band 06", 
+                   "Narrow NIR - Band 8a", 
+                   "Vegetation red edge - Band 07",
+                   "Green - Band 03", 
+                   "EVI", 
+                   "Vegetation red edge - Band 05", 
+                   "Blue - Band 02", 
+                   "VH", 
+                   "VV", 
+                   "Red - Band 04")
+
+                   
+
+
+
+# plot_varImp <- 
+ggplot(data = df_var, aes(x = var, y = importance))+
+  geom_bar(width = 0.1, stat="identity")+
+  coord_flip()+
+  theme_bw()+ 
+  xlab("predictor") +
+  ylab("importance")
 print(plot_varImp)
 ggsave(filename = paste0(fig_path, "070_plot_varImp", comm_mod, ".pdf"),
        plot = plot_varImp,
@@ -324,7 +351,6 @@ ggsave(filename = paste0(fig_path, "070_plot_varImp", comm_mod, ".pdf"),
 ```
 
 ## obs ~ pred
-
 
 ```{r pressure, echo=FALSE}
  ggplot(test_data, aes(pai, pred))+ 
