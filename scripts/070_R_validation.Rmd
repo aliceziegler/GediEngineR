@@ -22,6 +22,7 @@ library(caret)
 library(ranger)
 library(dplyr)
 library(ggplot2)
+library(ggpubr)
 library(viridis)
 library(data.table)
 library(sf)
@@ -195,13 +196,18 @@ write.csv(heat_rmsesd_cross, paste0(fig_path, "070_heat_rmsesd_cross_", comm_mod
 plot_pai <- function(dat, plot_comm){
   box_pai <- ggplot(dat, aes(x=as.character(month), y=pai, fill = as.character(corine))) +
     geom_boxplot()+
-    ggtitle(paste0("PAI ", plot_comm))+
+    
+    #ggtitle(paste0("PAI ", plot_comm))+
     theme_bw()+
-    xlab("Date")+
+    xlab("Month")+
     ylab("PAI")+
+    # scale_fill_discrete(name = "legend", labels = c("arable land", "pasture", "broad leaved", "coniferous", "mixed forest"))+
+    scale_fill_manual(values = c("12" = "lightgoldenrod3","18" = "darkorange", "23" = "darkolivegreen1",
+                                 "24" = "springgreen3","25" = "forestgreen"),
+                      labels = c("arable land", "pastures", "broad-leaved", "coniferous", "mixed forest"))+
     scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
                   labels = trans_format("log10", math_format(10^.x)))
-  print(box_pai)
+
   ggsave(filename = paste0(fig_path, "070_box_pai", comm_mod, "_", plot_comm, ".pdf"),
          plot = box_pai,
          width = 200, height = 150, units = "mm", dpi = 300)
@@ -211,16 +217,21 @@ plot_pai <- function(dat, plot_comm){
 pai_2021 <- plot_pai(test_data, "2021")
 pai_2019 <- plot_pai(train_data[train_data$year == 2019,], "2019")
 pai_2020 <- plot_pai(train_data[train_data$year == 2020,], "2020")
-pai_19_20_21 <- plot_pai(rbind(st_drop_geometry(train_data), test_data[,!colnames(test_data) %in% c("geometry", "pred") ]), "19_20_21")
+pai_19_20_21 <- plot_pai(rbind(st_drop_geometry(train_data), test_data[,!colnames(test_data) %in% c("geometry", "pred") ]), "2019-2021")
+
 
 plot_ndvi <- function(dat, plot_comm){
   box_ndvi <- ggplot(dat, aes(x=as.character(month), y=NDVI, fill = as.character(corine))) +
     geom_boxplot()+
-      ggtitle(paste0("NDVI ", plot_comm))+
+    #ggtitle(paste0("NDVI ", plot_comm))+
     theme_bw()+
-    xlab("Date")+
-    ylab("NDVI")
-  print(box_ndvi)
+    xlab("Month")+
+    ylab("NDVI")+
+    # scale_fill_discrete(name = "legend", labels = c("arable land", "pasture", "broad leaved", "coniferous", "mixed forest"))
+   scale_fill_manual(values = c("12" = "lightgoldenrod3","18" = "darkorange", "23" = "darkolivegreen1",
+                                 "24" = "springgreen3","25" = "forestgreen"),
+                      labels = c("arable land", "pastures", "broad-leaved", "coniferous", "mixed forest"))
+  # print(box_ndvi)
   ggsave(filename = paste0(fig_path, "070_box_ndvi", comm_mod, "_", plot_comm, ".pdf"),
          plot = box_ndvi,
          width = 200, height = 150, units = "mm", dpi = 300)
@@ -230,7 +241,31 @@ plot_ndvi <- function(dat, plot_comm){
 ndvi_2021 <- plot_ndvi(test_data, "2021")
 ndvi_2019 <- plot_ndvi(train_data[train_data$year == 2019,], "2019")
 ndvi_2020 <- plot_ndvi(train_data[train_data$year == 2020,], "2020")
-ndvi_19_20_21 <- plot_ndvi(rbind(st_drop_geometry(train_data), test_data[,!colnames(test_data) %in% c("geometry", "pred") ]), "19_20_21")
+ndvi_19_20_21 <- plot_ndvi(rbind(st_drop_geometry(train_data), test_data[,!colnames(test_data) %in% c("geometry", "pred") ]), "2019-2021")
+
+# Combine NDVI and PAI plot
+
+plot_list <- list(pai_19_20_21, ndvi_19_20_21)
+plot_grid <-
+  ggpubr::ggarrange(
+    # plotlist = plot_list, 
+    pai_19_20_21 + rremove("xlab") + rremove("x.text") + rremove("x.ticks"), 
+    ndvi_19_20_21,
+    ncol= 1, nrow = 2, heights = c(0.9, 1),
+    common.legend = T, legend = c("bottom", "left"),
+    font.label = list(size = 3))
+
+plot(plot_grid)
+
+ggsave(filename = paste0(fig_path, "070_pai_ndvi_dynamic_combi.png"),
+       plot = plot_grid,
+       width = 200, height = 150, units = "mm", dpi = 300)
+
+ggsave(filename = paste0(fig_path, "070_pai_ndvi_dynamic_combi.pdf"),
+       plot = plot_grid,
+       width = 200, height = 150, units = "mm", dpi = 300)
+
+
 ```
 
 ##modeling plots
