@@ -72,12 +72,16 @@ saveRDS(pred_pai_df, paste0(out_path, "090_pred_pai_df_", comm_mod, ".rds"))
 plot_pai <- function(dat, plot_comm){
   box_pai <- ggplot(dat, aes(x=month, y=pai, fill = as.character(corine))) +
     geom_boxplot()+
-    ggtitle(paste0("PAI ", plot_comm))+
+    # ggtitle(paste0("PAI ", plot_comm))+
     theme_bw()+
-    xlab("Date")+
+    xlab("Month")+
     ylab("PAI")+
-    scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
-                  labels = trans_format("log10", math_format(10^.x)))
+    # scale_fill_discrete(name = "legend", labels = cor_lab)+
+    scale_fill_manual(values = cor_val,
+                      labels = cor_lab,
+                      name=element_blank())#+
+    # scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
+    #               labels = trans_format("log10", math_format(10^.x)))
   print(box_pai)
   ggsave(filename = paste0(fig_path, "095_box_pai_spat_pred_", comm_mod, "_", plot_comm, ".pdf"),
          plot = box_pai,
@@ -85,7 +89,8 @@ plot_pai <- function(dat, plot_comm){
   return(box_pai)
 }
 
-pai_spat_pred_box <- plot_pai(pred_pai_df, "spat_pred")
+pai_spat_pred_box <-
+  plot_pai(pred_pai_df, "spat_pred")
 
 
 ###calculating median per month and doing  correlation test

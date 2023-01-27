@@ -34,6 +34,9 @@ comm_filt <- paste0(comm, "no2022_inclMix_")
 comm_mod <- paste0(comm_filt, "val_21_total")
 comm_comp <- "median"
 
+# month_nm <- c("january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december")
+
+
 plot_cor <- F
 
 #####
@@ -125,7 +128,8 @@ map_plot <-
   # scale_fill_viridis(name = "PAI", option="inferno")+
   # scale_x_continuous(name = "Longitude", expand = c(0,0), breaks = breaks_x, labels = labels_x)+
   # scale_y_continuous(name = "Latitude", expand = c(0,0), breaks = breaks_y, labels = labels_y)+#n.breaks = 3)+
-  ggtitle(paste0("month_", i)) +
+  # ggtitle(paste0("month_", i)) +
+  ggtitle(month.name[i]) +
   geom_sf(data = hessen, fill = NA, color = "red")+
   # # geom_polygon(mapping = aes(x = long, y = lat, group = group),data = overlay_df, color = "red", fill = NA)+
   # geom_polygon(mapping = aes(x = long, y = lat, group = group),data = exmpl_df, color = "black", fill = NA, size = 0.4)+ #(0.1)
@@ -154,9 +158,15 @@ print(map_plot)
 return(map_plot)
 })
 
+# #für marvin
+# plot_list_sml <- plot_list[c(3,5,7,9)]
+# saveRDS(plot_list_sml, file = paste0(proj_path, "div/ggarrange_TS.rds"))
+# ggpubr::ggarrange(plotlist = plot_list_sml, ncol= 4, nrow = 1, # widths = (1,1,1,1), #heights = c(1,1,1,0.2),
+#                   common.legend = T, legend = c("bottom", "left"))
+# ###
 
-plot_grid <-
-  ggpubr::ggarrange(plotlist = plot_list[c(3,5,7,9)], ncol= 4, nrow = 1, #heights = c(1,1,1,0.2),
+# plot_grid <-
+  ggpubr::ggarrange(plotlist = plot_list[c(3,5,7,9)], ncol= 4, nrow = 1, # widths = (1,1,1,1), #heights = c(1,1,1,0.2),
                     common.legend = T, legend = c("bottom", "left"))
                    # ,        font.label = list(size = 3))
 

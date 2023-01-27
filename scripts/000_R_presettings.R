@@ -22,6 +22,12 @@ core_num <- 20
 
 daterange <- c("2019-03-01","2021-12-31")  #Stand 10.10.2021 granules für 2022 nur bis ca Juni. Außerdem teilweise .png files (was ist das?)
 
+##plotting settings
+cor_val <- c("12" = "lightgoldenrod3","18" = "darkorange", "23" = "darkolivegreen1",
+             "24" = "springgreen3","25" = "forestgreen") #for values in scale fill manual
+cor_lab <- c("arable land", "pasture", "broad leaved", "coniferous", "mixed forest")
+
+
 ####################################################################
 ####################################################################
 ### Don't change anything past this point,
