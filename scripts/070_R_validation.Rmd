@@ -348,6 +348,7 @@ ggsave(filename = paste0(fig_path, "070_points_month", comm_mod, ".pdf"),
 #####
 ### Performance over time R² and RMSE/sd
 #####
+error_r2_rmsesd <- errors_month_long[errors_month_long$error_metric %in% c("Rsquared", "RMSE_sd")]
 MyColour <- c("#21918c", "#fde725") 
 points_month_r2_rmse <-
   ggplot(error_r2_rmsesd, aes(month, value))+
