@@ -19,10 +19,12 @@ library(ggplot2)
 library(viridis)
 library(dplyr)
 library(rnaturalearth)
+library(rnaturalearthdata)
 library(sf)
 library(RColorBrewer)
 library(animation)
 library(gtools)
+library(patchwork)
 
 source("scripts/000_R_presettings.R")
 
@@ -37,7 +39,7 @@ comm_comp <- "median"
 # month_nm <- c("january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december")
 
 
-plot_cor <- F
+plot_cor <- T
 
 #####
 ### read data
@@ -54,6 +56,12 @@ hessen = rnaturalearth::ne_states(country = "Germany", returnclass = c("sf")) %>
 hessen = st_cast(hessen, "POLYGON")
 hessen_utm <- as_Spatial(st_transform(hessen, crs = crs(corine)))
 
+#germany
+ger = rnaturalearth::ne_countries(country = "Germany", returnclass = c("sf"), scale = "small")
+ger = st_cast(ger, "POLYGON")
+ger_utm <- as_Spatial(st_transform(ger, crs = crs(corine)))
+
+corine_plt <- mask(x = corine, mask = hessen_utm)
 
 ########################################################################################
 ### Do stuff
@@ -62,26 +70,55 @@ hessen_utm <- as_Spatial(st_transform(hessen, crs = crs(corine)))
 
 
 ###################
-### plotting corine
+### plotting corine and study area
 ####################
 
+
 if (plot_cor == T){
-  #
-  # breaks_x <- c(464839.928, 478858.769)#471811.712, , 485905.839)
-  # breaks_y <- c(5627660.767, 5638823.664)
-  # labels_x <- c("8°30.0'", "8°42.0'")
-  # labels_y <- c("50°48.0'", "50°54.0'")
+
+  ### overview study area
+  overview <-
+    ggplot() +
+    geom_polygon(mapping = aes(x = long, y = lat),
+                 data = ger_utm, color = "black", fill = NA, size = 0.5)+
+    geom_polygon(mapping = aes(x = long, y = lat),
+                 data = hessen_utm, color = "red", fill = "red", size = 0.5)+
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.background = element_rect(fill='transparent'),
+          plot.background = element_rect(fill='transparent'),
+          panel.grid = element_line(color = "grey80"),
+          axis.text.y = element_blank(),
+          axis.text.x = element_blank(),
+          axis.title.x = element_blank(),
+          axis.title.y = element_blank(),
+          # # plot.title = element_text(size = 5, margin = margin(-0.5,0,0,0)),
+          # legend.text = element_text(size = 8),
+          # legend.title = element_text(size = 8),
+          # legend.key.size = unit(0.25, "cm"),
+          axis.ticks = element_blank(),
+          panel.border = element_blank())
+
+
+  breaks_x <- c(430588.049, 464539.554, 500000.000, 535460.446, 570920.379)
+  breaks_y <- c(5483521.328, 5539109.815, 5594702.973, 5650300.787, 5705903.240)
+  labels_x <- c("8°00", "8°30", "9°00", "9°30", "10°00")
+  labels_y <- c("49°30", "50°00", "50°30", "51°00", "51°30")
 
 
   gg_cor <-
-    ggR(corine, forceCat = TRUE, geom_raster = TRUE)+
-    scale_fill_manual(values = c("0" = "white", "12" = "lightgoldenrod3","18" = "darkorange","23" = "darkolivegreen1",
-                                 "24" = "springgreen3","25" = "forestgreen"),
-                      labels = c("other", "arable land", "pastures", "broad-leaved", "coniferous", "mixed forest"))+
-    # scale_x_continuous(name = "Longitude", expand = c(0,0), breaks = breaks_x, labels = labels_x)+
-    # scale_y_continuous(name = "Latitude", expand = c(0,0), breaks = breaks_y, labels = labels_y)+#n.breaks = 3)+
+    ggR(corine_plt, forceCat = TRUE, geom_raster = TRUE)+
+    scale_fill_manual(values = c("12" = "lightgoldenrod3","18" = "darkorange","23" = "darkolivegreen1",
+                                 "24" = "springgreen3","25" = "forestgreen", "0" = "white"),
+                      labels = c("arable land", "pastures", "broad-leaved", "coniferous", "mixed forest", "other"),
+                      na.value="white")+
+    scale_x_continuous(name = "Longitude", expand = c(0,0), breaks = breaks_x, labels = labels_x)+
+    scale_y_continuous(name = "Latitude", expand = c(0,0), breaks = breaks_y, labels = labels_y)+#n.breaks = 3)+
     geom_polygon(mapping = aes(x = long, y = lat),data = hessen_utm, color = "black", fill = NA, size = 1)+ #(0.1)
-    theme(panel.grid = element_line(color = "grey80"),
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.background = element_blank(),
+          panel.grid = element_line(color = "grey80"),
           axis.text.y = element_text(angle = 90, hjust = 0.5, colour = "black", size = 6),
           axis.text.x = element_text(colour = "black", size = 6),
           axis.title.x = element_text(size = 8),
@@ -91,8 +128,10 @@ if (plot_cor == T){
           legend.title = element_text(size = 8),
           legend.key.size = unit(0.25, "cm"),
           axis.ticks = element_line(size = 0.25),
-          axis.ticks.length = unit(0.15, "cm"))+
-    # plot.margin = unit(c(0.25,-0.6,-0.35,-0.6), "cm"))+
+          axis.ticks.length = unit(0.15, "cm"),
+          panel.border = element_rect(colour = "black", fill=NA),
+          legend.position = c(0.15, 0.9))+
+    # annotate("text", x=555000, y=5477000, label= "Overview of Germany \nwith Hesse (red).", size = 2.5)+
     guides(fill=guide_legend(title="land cover"))
 
   ggsave(file.path(paste0(fig_path, "100_corine_map.png")),
@@ -100,6 +139,17 @@ if (plot_cor == T){
          width = 150, height = 80, units = "mm",
          dpi = 300)
   ggsave(file.path(paste0(fig_path, "100_corine_map.pdf")),
+         plot = gg_cor,
+         width = 150, height = 80, units = "mm",
+         dpi = 300)
+
+  study_area <- gg_cor + inset_element(overview, left = 0.65, bottom = 0.02, right = 0.98, top = 0.35)
+
+  ggsave(file.path(paste0(fig_path, "100_study_map.png")),
+         plot = gg_cor,
+         width = 150, height = 80, units = "mm",
+         dpi = 300)
+  ggsave(file.path(paste0(fig_path, "100_study_map.pdf")),
          plot = gg_cor,
          width = 150, height = 80, units = "mm",
          dpi = 300)
