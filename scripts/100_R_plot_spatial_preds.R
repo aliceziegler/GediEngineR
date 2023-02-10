@@ -114,7 +114,7 @@ if (plot_cor == T){
                       na.value="white")+
     scale_x_continuous(name = "Longitude", expand = c(0,0), breaks = breaks_x, labels = labels_x)+
     scale_y_continuous(name = "Latitude", expand = c(0,0), breaks = breaks_y, labels = labels_y)+#n.breaks = 3)+
-    geom_polygon(mapping = aes(x = long, y = lat),data = hessen_utm, color = "black", fill = NA, size = 1)+ #(0.1)
+    geom_polygon(mapping = aes(x = long, y = lat),data = hessen_utm, color = "black", fill = NA, size = 0.5)+ #(0.1)
     theme(panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
           panel.background = element_blank(),
@@ -131,31 +131,33 @@ if (plot_cor == T){
           axis.ticks.length = unit(0.15, "cm"),
           panel.border = element_rect(colour = "black", fill=NA),
           legend.position = c(0.15, 0.9))+
+    geom_rect(aes(xmin = 532500, xmax = 585000, ymin = 5474000, ymax = 5541000),
+              fill = "transparent", color = "black")+
     # annotate("text", x=555000, y=5477000, label= "Overview of Germany \nwith Hesse (red).", size = 2.5)+
     guides(fill=guide_legend(title="land cover"))
 
-  ggsave(file.path(paste0(fig_path, "100_corine_map.png")),
-         plot = gg_cor,
-         width = 150, height = 80, units = "mm",
-         dpi = 300)
-  ggsave(file.path(paste0(fig_path, "100_corine_map.pdf")),
-         plot = gg_cor,
-         width = 150, height = 80, units = "mm",
-         dpi = 300)
+  # ggsave(file.path(paste0(fig_path, "100_corine_map.png")),
+  #        plot = gg_cor,
+  #        width = 110, height = 160, units = "mm",
+  #        dpi = 300)
+  # ggsave(file.path(paste0(fig_path, "100_corine_map.pdf")),
+  #        plot = gg_cor,
+  #        width = 110, height = 160, units = "mm",
+  #        dpi = 300)
 
-  study_area <- gg_cor + inset_element(overview, left = 0.65, bottom = 0.02, right = 0.98, top = 0.35)
+  study_area <-
+    gg_cor + inset_element(overview, left = 0.65, bottom = -0.01, right = 1, top = 0.3)
 
-  ggsave(file.path(paste0(fig_path, "100_study_map.png")),
-         plot = gg_cor,
-         width = 150, height = 80, units = "mm",
-         dpi = 300)
   ggsave(file.path(paste0(fig_path, "100_study_map.pdf")),
-         plot = gg_cor,
-         width = 150, height = 80, units = "mm",
+         plot = study_area,
+         width = 110, height = 160, units = "mm",
          dpi = 300)
+  ggsave(file.path(paste0(fig_path, "100_study_map.png")),
+         plot = study_area,
+         width = 110, height = 160, units = "mm",
+         dpi = 300)
+
 }
-
-
 
 
 #####

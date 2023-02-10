@@ -25,7 +25,7 @@ out_21 <- T
 random_sample <- F
 balanced_sample <- F
 min_same_size_sample <- F
-proportion_sample <- T
+proportion_sample <- F
 sample_size <- 150000
 comm_filt <- paste0(comm, "no2022_inclMix_")
 comm_mod <- paste0(comm_filt, "val_21_total_balanced_150000_props")
