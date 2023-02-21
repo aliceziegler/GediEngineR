@@ -23,6 +23,8 @@ library(sf)
 library(RColorBrewer)
 library(animation)
 library(gtools)
+library(gridExtra)
+library(ggpubr)
 
 source("scripts/000_R_presettings.R")
 
@@ -131,13 +133,16 @@ map_plot <-
   # ggtitle(paste0("month_", i)) +
   ggtitle(month.name[i]) +
   geom_sf(data = hessen, fill = NA, color = "red")+
+  labs(fill = "PAI")+
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
   # # geom_polygon(mapping = aes(x = long, y = lat, group = group),data = overlay_df, color = "red", fill = NA)+
   # geom_polygon(mapping = aes(x = long, y = lat, group = group),data = exmpl_df, color = "black", fill = NA, size = 0.4)+ #(0.1)
   # geom_text(mapping = aes(x = X, y = Y, label = area), data = pred_exmpl_labels, colour = "black", fontface = "bold", size = 4)+ #size = 1.8,
   theme(panel.background = element_blank(), #panel.grid = element_line(color = "grey80"),
         axis.text.y = element_text(angle = 90, hjust = 0.5, colour = "black", size = 6),
-        axis.text.x = element_text(colour = "black", size = 6),
-        axis.title.x = element_text(size = 6),
+       axis.text.x = element_text(colour = "black", size = 6),
+       axis.title.x = element_blank(),
         axis.title.y = element_text(size = 6),
         plot.title = element_text(size = 10, face = "bold"), #margin = margin(-0.5,0,0,0),
         legend.text = element_text(size = 6),
@@ -158,25 +163,33 @@ print(map_plot)
 return(map_plot)
 })
 
-# #für marvin
-# plot_list_sml <- plot_list[c(3,5,7,9)]
-# saveRDS(plot_list_sml, file = paste0(proj_path, "div/ggarrange_TS.rds"))
-# ggpubr::ggarrange(plotlist = plot_list_sml, ncol= 4, nrow = 1, # widths = (1,1,1,1), #heights = c(1,1,1,0.2),
-#                   common.legend = T, legend = c("bottom", "left"))
-# ###
 
+# ###
 # plot_grid <-
-  ggpubr::ggarrange(plotlist = plot_list[c(3,5,7,9)], ncol= 4, nrow = 1, # widths = (1,1,1,1), #heights = c(1,1,1,0.2),
-                    common.legend = T, legend = c("bottom", "left"))
-                   # ,        font.label = list(size = 3))
+#   ggpubr::ggarrange(plotlist = plot_list[c(3,5,7,9)], ncol= 4, nrow = 1, # widths = (1,1,1,1), #heights = c(1,1,1,0.2),
+#                     common.legend = T, legend = c("bottom", "left"))
+#                    # ,        font.label = list(size = 3))
+
+plot_grid <-
+  ggpubr::ggarrange(plotlist = list(plot_list[[3]],
+                                    #to add space, so spaces are equal.
+                                    #most left plot needs more space because y-axis belongs to that plot
+                                    ggparagraph(text=" ", face = "italic", size = 2, color = "black"),
+                                    plot_list[[5]] + rremove("ylab") + rremove("y.text") + rremove("y.ticks"),
+                                    plot_list[[7]] + rremove("ylab") + rremove("y.text") + rremove("y.ticks"),
+                                    plot_list[[9]] + rremove("ylab") + rremove("y.text") + rremove("y.ticks")),
+                    ncol= 5, nrow = 1, widths = c(1, 0.03,1,1,1), #heights = c(1,1,1,0.2),
+                    common.legend = T, legend = "right") +
+  theme(plot.margin = margin(0,0,1,0, "cm"))
+# ,        font.label = list(size = 3))
 
 ggsave(filename = paste0(fig_path, "100_plot_grid_3_5_7_9", "_", comm_mod, "_", comm_comp, ".pdf"),
        plot = plot_grid,
-       width = 200, height = 150, units = "mm", dpi = 300)
+       width = 270, height = 100, units = "mm", dpi = 300)
 
 ggsave(filename = paste0(fig_path, "100_plot_grid_3_5_7_9", "_", comm_mod, "_", comm_comp, ".png"),
        plot = plot_grid,
-       width = 200, height = 150, units = "mm", dpi = 300)
+       width = 270, height = 100, units = "mm", dpi = 300)
 
 
 ### animation
