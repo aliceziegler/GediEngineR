@@ -27,6 +27,7 @@ library(viridis)
 library(data.table)
 library(sf)
 library(scales)
+library(shadowtext)
 
 source("000_R_presettings.R")#different path, due to .Rmd
 #####
@@ -118,7 +119,7 @@ tbl_n_cor_mon_long <- as.data.frame(tbl_n_cor_mon)
 n_cor_mon <-
   ggplot(data = tbl_n_cor_mon_long, mapping = aes(x = month, y = corine, fill = Freq)) + 
   geom_tile() + 
-  geom_text(aes(label = round(Freq, 2))) +
+  geom_shadowtext(aes(label = round(Freq, 2))) +
   scale_fill_viridis(discrete = F) +
   labs(fill = "frequency")+
   xlab(label= "month")+
