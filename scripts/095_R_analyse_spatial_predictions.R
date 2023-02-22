@@ -18,6 +18,7 @@ library(ggplot2)
 library(scales)
 library(stringr)
 library(viridis)
+library(shadowtext)
 source("scripts/000_R_presettings.R")
 
 #####
@@ -139,14 +140,39 @@ tbl_n_cor_mon <- table(as.data.frame(pred_pai_df)[,c("month", "corine")])
 write.csv(tbl_n_cor_mon, paste0(fig_path, "095_n_cor_mon_spat_pred_", comm_mod, ".csv"))
 
 tbl_n_cor_mon_long <- as.data.frame(tbl_n_cor_mon)
-
+#
 n_cor_mon <-
   ggplot(data = tbl_n_cor_mon_long, mapping = aes(x = month, y = corine, fill = Freq)) +
   geom_tile() +
-  geom_text(aes(label = round(Freq, 2))) +
-  scale_fill_viridis(discrete = F) +
-  xlab(label= "month")
+  geom_shadowtext(size = 3, aes(label = round(Freq, 2))) +
+  scale_fill_viridis(discrete = F, breaks  = c(500000, 400000, 300000, 200000, 100000),
+                     labels = c("5","4","3","2", "1")) +
+  xlab(label= "month")+
+    guides(fill=guide_colourbar(title = expression(atop(frequency, ~x10^{5}))))+
+    theme_bw()+
+    theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank())+
+    scale_y_discrete(expand=c(0,0), labels = cor_lab)+
+    scale_x_discrete(expand=c(0,0))
 print(n_cor_mon)
 ggsave(filename = paste0(fig_path, "095_n_cor_mon_spat_pred__fig", comm_mod, ".pdf"),
        plot = n_cor_mon,
        width = 200, height = 150, units = "mm", dpi = 300)
+#
+#
+# n_cor_mon <-
+#   ggplot(data = tbl_n_cor_mon_long, mapping = aes(x = month, y = corine, fill = Freq)) +
+#   geom_tile() +
+#   geom_text(aes(label = round(Freq, 2))) +
+#   scale_fill_viridis(discrete = F) +
+#   labs(fill = "frequency")+
+#   xlab(label= "month")+
+#   theme_bw()+
+#   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+#         panel.grid.minor = element_blank())+
+#   scale_y_discrete(expand=c(0,0), labels = cor_lab)+
+#   scale_x_discrete(expand=c(0,0))
+# print(n_cor_mon)
+# ggsave(filename = paste0(fig_path, "070_n_cor_mon_fig", comm_mod, ".pdf"),
+#        plot = n_cor_mon,
+#        width = 200, height = 150, units = "mm", dpi = 300)

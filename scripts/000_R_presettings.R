@@ -11,9 +11,9 @@ rm(list=ls())
 ### stuff to play with
 ####################################################################
 ####################################################################
-# machine <- "local"
+machine <- "local"
 # machine <- "cluster" # MaRC3
-machine <- "rstudioserver" # hosted on MaRC3
+# machine <- "rstudioserver" # hosted on MaRC3
 
 comm <- "_all_1col_" ## short descriptive comment to use e.g. for file naming
 
