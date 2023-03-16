@@ -11,7 +11,7 @@ rm(list=ls())
 #####
 ### TO DO
 #####
-#? ich bin nicht sicher ob sd nach Monat so sinnvoll ist  - aber zum Vergleich der Monate untereinander evtl schon...
+# Some hard coding of labels, etc...
 
 
 #####
@@ -28,6 +28,7 @@ library(data.table)
 library(sf)
 library(scales)
 library(shadowtext)
+library(forcats)
 
 source("000_R_presettings.R")#different path, due to .Rmd
 #####
@@ -369,6 +370,49 @@ ggsave(filename = paste0(fig_path, "070_points_month_R2_RMSEsd", comm_mod, ".pdf
        plot = points_month_r2_rmse,
        width = 200, height = 150, units = "mm", dpi = 300)
 
+
+#####
+### plot ffs variable selection
+#####
+ffs_plot <-
+plot_ffs(model, plotType = "selected", reverse = T)
+print(ffs_plot)
+
+
+
+ 
+ ###ggplot translation of CAST::plot_ffs for this specific case
+ selvars <- data.frame(selectedvars = factor(c(paste0(model$selectedvars[1], model$selectedvars[2]),model$selectedvars[3:length(model$selectedvars)]), 
+                                             levels = c(paste0(model$selectedvars[1], model$selectedvars[2]),model$selectedvars[3:length(model$selectedvars)])), 
+                       selectedvars_perf = model$selectedvars_perf, 
+                       selectedvars_perf_SE = model$selectedvars_perf_SE, 
+                       selectedvars_labels = c("Red/Band 04 + VV", 
+                                               "+ EVI",
+                                               "+ Vegetation red edge/Band 07",
+                                               "+ Vegetation red edge/Band 05", 
+                                               "+ VH", 
+                                               "+ Green/Band 03", 
+                                               "+ NIR/Band 08", 
+                                               "+ Narrow NIR/Band 8a", 
+                                               "+ Vegetation red edge/Band 06",
+                                               "+ Blue/Band 02"))
+ 
+ gg_ffs_plot <-
+ggplot(data = selvars, aes(x = selectedvars, y = selectedvars_perf))+
+  geom_pointrange(aes(ymin=selectedvars_perf-selectedvars_perf_SE, ymax=selectedvars_perf+selectedvars_perf_SE))+
+  theme_bw()+ 
+  # coord_flip()+
+  xlab("selected variables") +
+  ylab("RMSE")+
+  scale_x_discrete(labels=selvars$selectedvars_labels)+
+  theme(axis.text.x=element_text(angle=45, hjust = 1))  
+print(gg_ffs_plot)
+ggsave(filename = paste0(fig_path, "070_plot_ffs_imp", comm_mod, ".pdf"),
+       plot = gg_ffs_plot,
+       width = 200, height = 150, units = "mm", dpi = 300)
+ 
+ 
+ 
 #####
 ### variable importance
 #####
