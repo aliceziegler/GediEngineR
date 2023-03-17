@@ -36,6 +36,7 @@ if (machine == "cluster"){
 }
 
 comm_filt <- paste0(comm, "no2022_inclMix_")
+comm_mod <- paste0(comm_filt, "val_21_total")
 # comm_mod <- paste0(comm_filt, "val_21_total_balanced_")
 # comm_mod <- paste0(comm_filt, "val_21_total_balanced_150000")
 # comm_mod <- paste0(comm_filt, "val_21_total_balanced_150000_props")
