@@ -41,7 +41,7 @@ comm_mod <- paste0(comm_filt, "val_21_total")
 # comm_mod <- paste0(comm_filt, "val_21_total_balanced_150000")
 # comm_mod <- paste0(comm_filt, "val_21_total_balanced_150000_props")
 
-
+month_labels <- seq(12)
 ```
 
 ## Preparation of data
@@ -128,7 +128,7 @@ n_cor_mon <-
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())+
   scale_y_discrete(expand=c(0,0), labels = cor_lab)+
-  scale_x_discrete(expand=c(0,0))
+  scale_x_discrete(expand=c(0,0), labels = month_labels)
 print(n_cor_mon)
 ggsave(filename = paste0(fig_path, "070_n_cor_mon_fig", comm_mod, ".pdf"),
        plot = n_cor_mon,
@@ -218,7 +218,7 @@ write.csv(heat_rmsesd_cross, paste0(fig_path, "070_heat_rmsesd_cross_", comm_mod
 #####
 plot_pai <- function(dat, plot_comm){
   box_pai <- ggplot(dat, aes(x=as.character(month), y=pai, fill = as.character(corine))) +
-    geom_boxplot()+
+    geom_boxplot(outlier.shape = 1)+
     #ggtitle(paste0("PAI ", plot_comm))+
     theme_bw()+
     xlab("Month")+
@@ -227,6 +227,7 @@ plot_pai <- function(dat, plot_comm){
     scale_fill_manual(values = cor_val,
                       labels = cor_lab, 
                       name=element_blank())+
+    scale_x_discrete(labels = month_labels)+
     scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
                   labels = trans_format("log10", math_format(10^.x)))
 
@@ -243,16 +244,18 @@ pai_19_20_21 <- plot_pai(rbind(st_drop_geometry(train_data), test_data[,!colname
 
 
 plot_ndvi <- function(dat, plot_comm){
-  box_ndvi <- ggplot(dat, aes(x=as.character(month), y=NDVI, fill = as.character(corine))) +
-    geom_boxplot()+
+  box_ndvi <-
+    ggplot(dat, aes(x=as.character(month), y=NDVI, fill = as.character(corine))) +
+    geom_boxplot(outlier.shape = 1)+
     #ggtitle(paste0("NDVI ", plot_comm))+
     theme_bw()+
     xlab("Month")+
     ylab("NDVI")+
     # scale_fill_discrete(name = "legend", labels = cor_lab)
-   scale_fill_manual(values = cor_val,
+    scale_x_discrete(labels = month_labels)+
+    scale_fill_manual(values = cor_val,
                       labels = cor_lab, 
-                     name=element_blank())
+                      name=element_blank())
   # print(box_ndvi)
   ggsave(filename = paste0(fig_path, "070_box_ndvi", comm_mod, "_", plot_comm, ".pdf"),
          plot = box_ndvi,
@@ -306,7 +309,7 @@ heaty_r2 <-
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())+
   scale_y_discrete(expand=c(0,0), labels = cor_lab)+
-  scale_x_discrete(expand=c(0,0))
+  scale_x_discrete(expand=c(0,0), labels = month_labels)
 print(heaty_r2)
 ggsave(filename = paste0(fig_path, "070_heaty_r2", comm_mod, ".pdf"),
        plot = heaty_r2,
@@ -324,7 +327,7 @@ heaty_rmsesd <-
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())+
   scale_y_discrete(expand=c(0,0), labels = cor_lab)+
-  scale_x_discrete(expand=c(0,0))
+  scale_x_discrete(expand=c(0,0), labels = month_labels)
 print(heaty_rmsesd)
 ggsave(filename = paste0(fig_path, "070_heaty_rmsesd", comm_mod, ".pdf"),
        plot = heaty_rmsesd,
@@ -364,7 +367,9 @@ points_month_r2_rmse <-
                       labels = cor_lab)+
   scale_y_continuous(sec.axis = sec_axis(trans = ~.*1, name = "R²")) +
   scale_color_manual(labels = c("R²", "RMSE/sd"), values = MyColour) +
-  labs(y = "RMSE/sd")
+  labs(y = "RMSE/sd")+
+  scale_x_discrete(labels = month_labels)
+
 print(points_month)
 ggsave(filename = paste0(fig_path, "070_points_month_R2_RMSEsd", comm_mod, ".pdf"),
        plot = points_month_r2_rmse,

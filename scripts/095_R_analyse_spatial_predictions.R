@@ -66,13 +66,13 @@ pred_pai_df <- do.call("rbind", mask_list)
 lvls <- str_sort(unique(pred_pai_df$month), numeric = TRUE)
 pred_pai_df$month <- factor(pred_pai_df$month, levels = lvls)
 
-saveRDS(pred_pai_df, paste0(out_path, "090_pred_pai_df_", comm_mod, ".rds"))
+saveRDS(pred_pai_df, paste0(out_path, "095_pred_pai_df_", comm_mod, ".rds"))
 
 
 ## plot boxplot pai by corine and month
 plot_pai <- function(dat, plot_comm){
   box_pai <- ggplot(dat, aes(x=month, y=pai, fill = as.character(corine))) +
-    geom_boxplot()+
+    geom_boxplot(outlier.shape = 1)+
     # ggtitle(paste0("PAI ", plot_comm))+
     theme_bw()+
     xlab("Month")+
