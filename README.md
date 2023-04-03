@@ -31,9 +31,11 @@ Scritps to reproduce the analysis can be found in the **scripts** directory. All
 * **070_R_validation.Rmd**
 ** Markdown script with evaluation and analysis of results. 
 ** Plotting of results.
-* **080_GEE_monthly_composite**
+* **080_GEE_monthly_composite.R**
 ** run in Google Earth engine to create monthly composites
 * **090_R_spatial_prediction.R**
 ** spatial prediction on monthly composites
-* **100_R_plot_spatial_predictions**
+* **095_R_analyze_spatial_predictions.R**
+** analysing temporal variablility of spatial predictions
+* **100_R_plot_spatial_predictions.R**
 ** plotting spatial predictions as maps
