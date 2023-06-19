@@ -1,5 +1,5 @@
 //////////////////////////////////////
-//Description: recreate Model from R and compute spatial prediction
+//Description: recreate Model from R and compute spatial prediction (Marvin Ludwig)
 /////////////////////////////////////
 
 ////////////////////////
